@@ -1,1 +1,96 @@
 
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>部活配車代管理システム モック</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f4f6f8;margin:0}
+.header{background:#1f4e79;color:#fff;padding:14px;text-align:center;font-weight:bold}
+.tabs{display:flex;position:sticky;top:0;background:#fff}
+.tab{flex:1;padding:12px;border:none;background:#fff}
+.tab.active{background:#1f4e79;color:#fff}
+.page{display:none;padding:12px;max-width:480px;margin:auto}
+.page.active{display:block}
+.card{background:#fff;border-radius:12px;padding:14px;margin:10px 0;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+table{width:100%;border-collapse:collapse}
+td,th{padding:8px;border-bottom:1px solid #ddd;text-align:left}
+.btn{display:block;width:100%;padding:12px;background:#1f4e79;color:#fff;border:none;border-radius:8px}
+input{width:70px}
+</style>
+</head>
+<body>
+<div class="header">⚾ 配車代管理システム</div>
+
+<div class="tabs">
+<button class="tab active" onclick="show('guardian',this)">保護者</button>
+<button class="tab" onclick="show('accounting',this)">会計</button>
+<button class="tab" onclick="show('admin',this)">管理者</button>
+</div>
+
+<div id="guardian" class="page active">
+<div class="card">
+<h3>6/15 練習試合（姫路）</h3>
+<p>総配車代: 8,400円</p>
+<p>参加人数: 21名</p>
+<h2>1人あたり 400円</h2>
+</div>
+<div class="card">
+<table>
+<tr><th>苗字</th><th>人数</th><th>負担額</th></tr>
+<tr><td>川原</td><td>3</td><td>1,200円</td></tr>
+<tr><td>中村</td><td>1</td><td>400円</td></tr>
+<tr><td>村上</td><td>2</td><td>800円</td></tr>
+<tr><td>高橋</td><td>1</td><td>400円</td></tr>
+</table>
+</div>
+</div>
+
+<div id="accounting" class="page">
+<div class="card">
+<h3>遠征編集</h3>
+距離 <input value="30">km<br><br>
+ガソリン単価 <input value="170">円<br><br>
+燃費 <input value="10">km/L
+</div>
+<div class="card">
+<table>
+<tr><th>苗字</th><th>人数</th><th>配車</th></tr>
+<tr><td>川原</td><td>3</td><td>☐</td></tr>
+<tr><td>中村</td><td>1</td><td>☑</td></tr>
+<tr><td>村上</td><td>2</td><td>☐</td></tr>
+</table>
+</div>
+<button class="btn">LINE共有</button>
+</div>
+
+<div id="admin" class="page">
+<div class="card">
+<h3>メンバー管理</h3>
+<ul>
+<li>川原</li>
+<li>中村</li>
+<li>村上</li>
+<li>高橋</li>
+<li>岡島</li>
+</ul>
+<button class="btn">家庭追加</button>
+</div>
+<div class="card">
+<h3>権限管理</h3>
+<p>管理者: あなた</p>
+<p>会計: 会計担当</p>
+</div>
+</div>
+
+<script>
+function show(id,el){
+document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+el.classList.add('active');
+}
+</script>
+</body>
+</html>

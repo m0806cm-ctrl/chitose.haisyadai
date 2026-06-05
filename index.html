@@ -1,10 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>部活配車代管理システム モック</title>
+<title>部活配車代管理システム</title>
+
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f4f6f8;margin:0}
 .header{background:#1f4e79;color:#fff;padding:14px;text-align:center;font-weight:bold}
@@ -16,11 +16,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f4f6f8;
 .card{background:#fff;border-radius:12px;padding:14px;margin:10px 0;box-shadow:0 1px 4px rgba(0,0,0,.12)}
 table{width:100%;border-collapse:collapse}
 td,th{padding:8px;border-bottom:1px solid #ddd;text-align:left}
-.btn{display:block;width:100%;padding:12px;background:#1f4e79;color:#fff;border:none;border-radius:8px}
+.btn{display:block;width:100%;padding:12px;background:#1f4e79;color:#fff;border:none;border-radius:8px;margin-top:10px}
 input{width:70px}
+.smallbtn{padding:4px 8px;font-size:12px}
 </style>
 </head>
+
 <body>
+
 <div class="header">⚾ 配車代管理システム</div>
 
 <div class="tabs">
@@ -29,68 +32,191 @@ input{width:70px}
 <button class="tab" onclick="show('admin',this)">管理者</button>
 </div>
 
+<!-- 保護者 -->
 <div id="guardian" class="page active">
-<div class="card">
-<h3>6/15 練習試合（姫路）</h3>
-<p>総配車代: 8,400円</p>
-<p>参加人数: 21名</p>
-<h2>1人あたり 400円</h2>
-</div>
+<div class="card" id="summary"></div>
 <div class="card">
 <table>
-<tr><th>苗字</th><th>人数</th><th>負担額</th></tr>
-<tr><td>川原</td><td>3</td><td>1,200円</td></tr>
-<tr><td>中村</td><td>1</td><td>400円</td></tr>
-<tr><td>村上</td><td>2</td><td>800円</td></tr>
-<tr><td>高橋</td><td>1</td><td>400円</td></tr>
+<thead>
+<tr><th>苗字</th><th>人数</th><th>負担額</th><th>状態</th></tr>
+</thead>
+<tbody id="guardianTable"></tbody>
 </table>
 </div>
 </div>
 
+<!-- 会計 -->
 <div id="accounting" class="page">
+
 <div class="card">
 <h3>遠征編集</h3>
-距離 <input value="30">km<br><br>
-ガソリン単価 <input value="170">円<br><br>
-燃費 <input value="10">km/L
-</div>
-<div class="card">
-<table>
-<tr><th>苗字</th><th>人数</th><th>配車</th></tr>
-<tr><td>川原</td><td>3</td><td>☐</td></tr>
-<tr><td>中村</td><td>1</td><td>☑</td></tr>
-<tr><td>村上</td><td>2</td><td>☐</td></tr>
-</table>
-</div>
-<button class="btn">LINE共有</button>
+
+距離 <input id="distance" value="30"> km<br><br>
+ガソリン単価 <input id="gas" value="170"> 円<br><br>
+燃費 <input id="fuel" value="10"> km/L
+
+<button class="btn" onclick="calc()">計算</button>
 </div>
 
+<div class="card">
+<table>
+<thead>
+<tr><th>苗字</th><th>人数</th><th>配車</th></tr>
+</thead>
+<tbody id="accountTable"></tbody>
+</table>
+</div>
+
+<button class="btn" onclick="makeLine()">LINE共有</button>
+<textarea id="line"></textarea>
+
+</div>
+
+<!-- 管理者 -->
 <div id="admin" class="page">
+
 <div class="card">
-<h3>メンバー管理</h3>
-<ul>
-<li>川原</li>
-<li>中村</li>
-<li>村上</li>
-<li>高橋</li>
-<li>岡島</li>
-</ul>
-<button class="btn">家庭追加</button>
+<h3>メンバー追加</h3>
+<input id="name" placeholder="苗字">
+<input id="num" type="number" placeholder="人数">
+<button class="btn" onclick="add()">追加</button>
 </div>
+
 <div class="card">
-<h3>権限管理</h3>
-<p>管理者: あなた</p>
-<p>会計: 会計担当</p>
+<h3>メンバー一覧</h3>
+<ul id="list"></ul>
 </div>
+
 </div>
 
 <script>
-function show(id,el){
-document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-document.getElementById(id).classList.add('active');
-el.classList.add('active');
+
+let db = JSON.parse(localStorage.getItem("car-db") || '{"families":[]}');
+let last = null;
+
+function save(){
+localStorage.setItem("car-db",JSON.stringify(db));
+render();
 }
+
+function add(){
+const name=document.getElementById("name").value.trim();
+const num=Number(document.getElementById("num").value);
+
+if(!name||num<=0)return alert("入力");
+
+db.families.push({
+id:Date.now(),
+name,
+members:num,
+car:false,
+paid:false
+});
+
+save();
+}
+
+function toggleCar(id){
+db.families=db.families.map(f=>{
+if(f.id===id) f.car=!f.car;
+return f;
+});
+save();
+}
+
+function togglePaid(id){
+db.families=db.families.map(f=>{
+if(f.id===id) f.paid=!f.paid;
+return f;
+});
+save();
+}
+
+function calc(){
+
+const distance=Number(document.getElementById("distance").value);
+const gas=Number(document.getElementById("gas").value);
+const fuel=Number(document.getElementById("fuel").value);
+
+if(distance<=0||gas<=0||fuel<=0)return alert("入力");
+
+let total=(distance*gas)/fuel;
+total=Math.ceil(total/10)*10;
+
+const people=db.families.reduce((a,b)=>a+b.members,0);
+const per=Math.ceil(total/people);
+
+last={total,per};
+
+render();
+}
+
+function render(){
+
+// 管理一覧
+document.getElementById("list").innerHTML=
+db.families.map(f=>
+`<li>${f.name}(${f.members})</li>`
+).join("");
+
+// 会計表
+document.getElementById("accountTable").innerHTML=
+db.families.map(f=>
+`<tr>
+<td>${f.name}</td>
+<td>${f.members}</td>
+<td><input type="checkbox" ${f.car?'checked':''} onclick="toggleCar(${f.id})"></td>
+</tr>`
+).join("");
+
+// 保護者
+const people=db.families.reduce((a,b)=>a+b.members,0);
+
+document.getElementById("summary").innerHTML=last?
+`
+<h3>総額 ${last.total}円</h3>
+<h2>1人 ${last.per}円</h2>
+<p>参加 ${people}人</p>
+`:`未計算`;
+
+document.getElementById("guardianTable").innerHTML=
+db.families.map(f=>
+`<tr>
+<td>${f.name}</td>
+<td>${f.members}</td>
+<td>${last?last.per*f.members+"円":"-"}</td>
+<td>
+<button class="smallbtn" onclick="togglePaid(${f.id})">
+${f.paid?"済":"未"}
+</button>
+</td>
+</tr>`
+).join("");
+}
+
+function makeLine(){
+if(!last)return alert("計算してください");
+
+const people=db.families.reduce((a,b)=>a+b.members,0);
+
+document.getElementById("line").value=
+`配車代連絡
+
+1人あたり ${last.per}円
+総額 ${last.total}円
+参加人数 ${people}人`;
+}
+
+function show(id,btn){
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+btn.classList.add("active");
+}
+
+render();
+
 </script>
+
 </body>
 </html>

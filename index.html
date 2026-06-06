@@ -1,270 +1,139 @@
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
+<html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>配車代管理（完全版）</title>
-
+<title>部活配車代管理システム 完成版</title>
 <style>
-body{font-family:sans-serif;margin:0;background:#f4f6f8}
-
-.header{background:#1f4e79;color:#fff;padding:14px;text-align:center;font-weight:bold}
-
-.tabs{display:flex;position:sticky;top:0;background:#fff}
-.tab{flex:1;padding:12px;border:none;background:#fff}
-.tab.active{background:#1f4e79;color:#fff}
-
-.page{display:none;max-width:650px;margin:auto;padding:12px}
-.page.active{display:block}
-
-.card{background:#fff;padding:12px;margin:10px 0;border-radius:10px}
-
-input{width:100%;padding:8px;margin:6px 0}
-
-button{padding:8px;border:none;border-radius:6px;cursor:pointer}
-.primary{background:#1f4e79;color:#fff;width:100%}
-.small{font-size:12px;padding:4px 6px}
-
+body{font-family:sans-serif;margin:0;background:#f5f5f5}
+header{background:#1f4e79;color:#fff;padding:12px;text-align:center}
+.tabs{display:flex}.tabs button{flex:1;padding:12px;border:0}
+.active{background:#1f4e79;color:#fff}
+.page{display:none;padding:12px}.show{display:block}
+.card{background:#fff;padding:12px;border-radius:8px;margin:10px 0}
+input,textarea,select{width:100%;padding:8px;margin:4px 0}
 table{width:100%;border-collapse:collapse}
-td,th{border-bottom:1px solid #ddd;padding:6px;text-align:left}
+td,th{border-bottom:1px solid #ddd;padding:6px}
+button{padding:8px}
+</style></head><body>
+<header>部活配車代管理システム</header>
 
-textarea{width:100%;height:120px}
-</style>
-</head>
-
-<body>
-
-<div class="header">配車代管理システム（完成版）</div>
-
-<!-- タブ -->
 <div class="tabs">
-<button class="tab active" onclick="show('admin',this)">管理</button>
-<button class="tab" onclick="show('accounting',this)">会計</button>
-<button class="tab" onclick="show('parent',this)">保護者</button>
+<button class="active" onclick="tab('admin',this)">管理者</button>
+<button onclick="tab('acct',this)">会計</button>
+<button onclick="tab('parent',this)">保護者</button>
 </div>
 
-<!-- 管理 -->
-<div id="admin" class="page active">
-
+<div id="admin" class="page show">
 <div class="card">
 <h3>家庭マスタ</h3>
-
 <input id="familyName" placeholder="苗字">
-<button class="primary" onclick="addFamily()">追加</button>
-
+<button onclick="addFamily()">追加</button>
 <div id="familyList"></div>
 </div>
-
+<div class="card">
+<h3>会計担当</h3>
+<input id="accountantName" placeholder="会計担当名">
+<button onclick="addAccountant()">追加</button>
+<div id="accountantList"></div>
+</div>
 </div>
 
-<!-- 会計 -->
-<div id="accounting" class="page">
-
+<div id="acct" class="page">
 <div class="card">
 <h3>遠征作成</h3>
-
 <input id="tripName" placeholder="遠征名">
-<input id="distance" type="number" placeholder="距離">
-<input id="gas" type="number" placeholder="単価">
+<input id="tripDate" type="date">
+<input id="distance" type="number" placeholder="往復距離(km)">
+<input id="gas" type="number" placeholder="ガソリン単価">
 <input id="fuel" type="number" placeholder="燃費">
-<input id="carCount" type="number" placeholder="配車台数" value="1">
-
-<button class="primary" onclick="createTrip()">遠征作成</button>
+<input id="cars" type="number" value="1" placeholder="配車台数">
+<button onclick="addTrip()">遠征作成</button>
 </div>
-
-<div class="card" id="tripArea"></div>
-
 <div class="card">
-<button class="primary" onclick="makeLine()">LINE生成</button>
-<textarea id="line"></textarea>
+<select id="tripSelect" onchange="selectTrip()"></select>
+<div id="tripEditor"></div>
+</div>
 </div>
 
-</div>
-
-<!-- 保護者 -->
 <div id="parent" class="page">
-<div class="card" id="parentView">未計算</div>
+<div class="card">
+<select id="parentTrip" onchange="renderParent()"></select>
+<div id="parentView"></div>
+</div>
 </div>
 
 <script>
+let db=JSON.parse(localStorage.getItem("club-haisha")||'{"families":[],"accountants":[],"trips":[]}');
+let currentTrip=null;
+function save(){localStorage.setItem("club-haisha",JSON.stringify(db));render();}
+function tab(id,b){document.querySelectorAll('.page').forEach(x=>x.classList.remove('show'));document.getElementById(id).classList.add('show');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');}
 
-let db = JSON.parse(localStorage.getItem("db")||'{"families":[],"trips":[]}');
-let currentTripId = null;
+function addFamily(){let n=familyName.value.trim(); if(!n)return; db.families.push({id:Date.now(),name:n}); familyName.value=''; save();}
+function delFamily(id){db.families=db.families.filter(f=>f.id!==id); save();}
+function addAccountant(){let n=accountantName.value.trim(); if(!n)return; db.accountants.push({id:Date.now(),name:n}); accountantName.value=''; save();}
+function delAccountant(id){db.accountants=db.accountants.filter(a=>a.id!==id); save();}
 
-function save(){
-localStorage.setItem("db",JSON.stringify(db));
-render();
+function addTrip(){
+let t={id:Date.now(),name:tripName.value,date:tripDate.value,distance:+distance.value,gas:+gas.value,fuel:+fuel.value,cars:+cars.value,participants:[]};
+db.trips.push(t); currentTrip=t.id; save();
 }
 
-function addFamily(){
-const name=document.getElementById("familyName").value.trim();
-if(!name)return;
-
-db.families.push({id:Date.now(),name});
-document.getElementById("familyName").value="";
+function selectTrip(){currentTrip=+tripSelect.value; render();}
+function toggleJoin(fid,ch){
+let t=db.trips.find(x=>x.id===currentTrip); if(!t)return;
+let p=t.participants.find(x=>x.familyId===fid);
+if(ch && !p)t.participants.push({familyId:fid,members:1,car:false,paid:false});
+if(!ch)t.participants=t.participants.filter(x=>x.familyId!==fid);
 save();
 }
-
-function deleteFamily(id){
-db.families=db.families.filter(f=>f.id!==id);
-save();
+function upd(fid,key,val){
+let t=db.trips.find(x=>x.id===currentTrip);
+let p=t.participants.find(x=>x.familyId===fid);
+if(!p)return;
+p[key]=val; save();
 }
-
-function show(id,btn){
-document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-btn.classList.add("active");
-}
-
-function createTrip(){
-
-const t={
-id:Date.now(),
-name:document.getElementById("tripName").value,
-distance:+document.getElementById("distance").value,
-gas:+document.getElementById("gas").value,
-fuel:+document.getElementById("fuel").value,
-carCount:+document.getElementById("carCount").value,
-participants:[]
-};
-
-if(!t.name) return alert("遠征名必須");
-
-db.trips.push(t);
-currentTripId=t.id;
-
-save();
-}
-
-function getTrip(){
-return db.trips.find(t=>t.id===currentTripId);
-}
-
-function toggleJoin(fid){
-const t=getTrip();
-if(!t) return;
-
-const p=t.participants.find(x=>x.familyId===fid);
-
-if(p){
-t.participants=t.participants.filter(x=>x.familyId!==fid);
-}else{
-t.participants.push({familyId:fid,members:1,car:false,paid:false});
-}
-
-save();
-}
-
-function setMembers(fid,val){
-const t=getTrip();
-const p=t.participants.find(x=>x.familyId===fid);
-if(p) p.members=+val;
-save();
-}
-
-function toggleCar(fid){
-const t=getTrip();
-const p=t.participants.find(x=>x.familyId===fid);
-if(p) p.car=!p.car;
-save();
-}
-
-function togglePaid(fid){
-const t=getTrip();
-const p=t.participants.find(x=>x.familyId===fid);
-if(p) p.paid=!p.paid;
-save();
-}
-
-function calc(){
-const t=getTrip();
-if(!t) return;
-
-let total=(t.distance*t.gas)/t.fuel*t.carCount;
+function calc(t){
+let total=((t.distance*t.gas)/t.fuel)*t.cars||0;
 total=Math.ceil(total/10)*10;
-
-const people=t.participants.reduce((a,b)=>a+b.members,0);
-const per=Math.ceil(total/people);
-
-t.result={total,per};
-
-save();
+let people=t.participants.reduce((a,b)=>a+(+b.members||0),0);
+let per=people?Math.ceil(total/people):0;
+return {total,per};
 }
-
 function render(){
+familyList.innerHTML=db.families.map(f=>`<div>${f.name} <button onclick="delFamily(${f.id})">削除</button></div>`).join('');
+accountantList.innerHTML=db.accountants.map(a=>`<div>${a.name} <button onclick="delAccountant(${a.id})">削除</button></div>`).join('');
 
-// 管理
-document.getElementById("familyList").innerHTML=
-db.families.map(f=>
-`<div>
-${f.name}
-<button onclick="deleteFamily(${f.id})">削除</button>
-</div>`
-).join("");
+tripSelect.innerHTML='<option value="">遠征選択</option>'+db.trips.map(t=>`<option value="${t.id}" ${t.id===currentTrip?'selected':''}>${t.date||''} ${t.name}</option>`).join('');
+parentTrip.innerHTML=tripSelect.innerHTML;
 
-// 会計
-const t=getTrip();
-
-if(!t){
-document.getElementById("tripArea").innerHTML="遠征未選択";
-return;
-}
-
-document.getElementById("tripArea").innerHTML=`
-<h3>${t.name}</h3>
-
-<button class="primary" onclick="calc()">計算</button>
-
-<table>
-<tr><th>家庭</th><th>参加</th><th>人数</th><th>車</th><th>集金</th></tr>
-${
-db.families.map(f=>{
-const p=t.participants.find(x=>x.familyId===f.id);
-
-return `
-<tr>
+let t=db.trips.find(x=>x.id===currentTrip);
+if(t){
+let r=calc(t);
+tripEditor.innerHTML=`<h3>${t.name}</h3>
+<table><tr><th>家庭</th><th>参加</th><th>人数</th><th>配車</th><th>集金</th></tr>
+${db.families.map(f=>{
+let p=t.participants.find(x=>x.familyId===f.id);
+return `<tr>
 <td>${f.name}</td>
-<td><input type="checkbox" ${p?'checked':''} onclick="toggleJoin(${f.id})"></td>
-<td><input type="number" value="${p?p.members:1}" onchange="setMembers(${f.id},this.value)"></td>
-<td><input type="checkbox" ${p&&p.car?'checked':''} onclick="toggleCar(${f.id})"></td>
-<td><input type="checkbox" ${p&&p.paid?'checked':''} onclick="togglePaid(${f.id})"></td>
-</tr>`;
-}).join("")
+<td><input type="checkbox" ${p?'checked':''} onchange="toggleJoin(${f.id},this.checked)"></td>
+<td><input type="number" value="${p?p.members:1}" onchange="upd(${f.id},'members',+this.value)"></td>
+<td><input type="checkbox" ${p&&p.car?'checked':''} onchange="upd(${f.id},'car',this.checked)"></td>
+<td><input type="checkbox" ${p&&p.paid?'checked':''} onchange="upd(${f.id},'paid',this.checked)"></td>
+</tr>`}).join('')}</table>
+<p>総額:${r.total}円 / 1人:${r.per}円</p>`;
 }
-</table>
-
-${
-t.result?
-`<h3>総額 ${t.result.total}円 / 1人 ${t.result.per}円</h3>`
-:""
+renderParent();
 }
-`;
-
-document.getElementById("parentView").innerHTML=
-t.result?
-db.families.map(f=>{
-const p=t.participants.find(x=>x.familyId===f.id);
-if(!p) return "";
-return `<div>${f.name}：${p.paid?"支払い済":t.result.per*p.members+"円"}</div>`;
-}).join("")
-:"未計算";
+function renderParent(){
+let id=+parentTrip.value;
+let t=db.trips.find(x=>x.id===id);
+if(!t){parentView.innerHTML='遠征を選択';return;}
+let r=calc(t);
+parentView.innerHTML=`<h3>${t.name}</h3><p>総額 ${r.total}円 / 1人 ${r.per}円</p>
+<table><tr><th>家庭</th><th>人数</th><th>金額</th><th>状態</th></tr>
+${t.participants.map(p=>{
+let f=db.families.find(x=>x.id===p.familyId);
+return `<tr><td>${f?f.name:''}</td><td>${p.members}</td><td>${p.members*r.per}円</td><td>${p.paid?'済':'未'}</td></tr>`
+}).join('')}</table>`;
 }
-
-function makeLine(){
-const t=getTrip();
-if(!t||!t.result) return;
-
-document.getElementById("line").value=
-`${t.name}
-総額 ${t.result.total}円
-1人 ${t.result.per}円
-参加人数 ${t.participants.reduce((a,b)=>a+b.members,0)}人`;
-}
-
 render();
-
-</script>
-
-</body>
-</html>
+</script></body></html>

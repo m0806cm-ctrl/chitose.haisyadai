@@ -3,17 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>配車代管理システム v3.3</title>
+<title>配車代管理 v4.0 現場運用版</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#f4f6f8;color:#333;}
-header{background:#1565c0;color:#fff;padding:12px;text-align:center;font-weight:bold;}
+body{margin:0;font-family:Arial;background:#f4f6f8;}
+header{background:#0d47a1;color:#fff;padding:12px;text-align:center;font-weight:bold;}
+
 .container{padding:10px;padding-bottom:90px;}
 
 .card{background:#fff;margin:10px 0;padding:10px;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-input{width:100%;padding:10px;margin:5px 0;border:1px solid #ccc;border-radius:8px;}
-button{padding:10px;margin:5px;border:none;border-radius:8px;font-size:14px;}
-.primary{background:#1565c0;color:#fff;}
+
+input{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:1px solid #ccc;}
+
+button{padding:10px;margin:3px;border:none;border-radius:8px;font-size:14px;}
+
+.primary{background:#0d47a1;color:#fff;}
 .green{background:#2e7d32;color:#fff;}
 .red{background:#c62828;color:#fff;}
 .gray{background:#777;color:#fff;}
@@ -22,25 +26,29 @@ button{padding:10px;margin:5px;border:none;border-radius:8px;font-size:14px;}
 .tab.active{display:block;}
 
 .nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid #ccc;}
-.nav button{flex:1;margin:0;border-radius:0;}
+.nav button{flex:1;}
 
-.row{display:flex;gap:6px;flex-wrap:wrap;}
 .small{font-size:12px;color:#666;}
+
+.row{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+
 hr{border:none;border-top:1px solid #eee;}
 </style>
 </head>
 
 <body>
 
-<header>配車代管理システム v3.3（完全運用版）</header>
+<header>配車代管理 v4.0（現場運用版）</header>
 
 <div class="container">
 
 <!-- LOGIN -->
 <div id="login" class="tab active">
 <h3>ログイン</h3>
-<input id="pass" type="password" placeholder="管理者パスワード">
-<button class="primary" onclick="login()">ログイン</button>
+<input id="pass" type="password" placeholder="パスワード">
+<button class="primary" onclick="login('admin')">管理者</button>
+<button class="green" onclick="login('account')">会計</button>
+<button onclick="show('parent')">保護者</button>
 </div>
 
 <!-- ADMIN -->
@@ -48,20 +56,31 @@ hr{border:none;border-top:1px solid #eee;}
 
 <div class="card">
 <h3>家庭マスタ</h3>
-<input id="famName" placeholder="苗字">
+<input id="fam" placeholder="苗字">
 <button class="primary" onclick="addFamily()">追加</button>
-<div id="familyList"></div>
+<div id="famList"></div>
 </div>
+
+<div class="card">
+<h3>会計アカウント</h3>
+<input id="accN" placeholder="名前">
+<input id="accP" placeholder="パスワード">
+<button class="primary" onclick="addAcc()">追加</button>
+</div>
+
+</div>
+
+<!-- ACCOUNT -->
+<div id="account" class="tab">
 
 <div class="card">
 <h3>遠征作成</h3>
 <input id="tName" placeholder="遠征名">
-<input id="tDate" type="date">
-<input id="dist" placeholder="距離 km">
-<input id="gas" placeholder="ガソリン単価">
-<input id="fuel" placeholder="燃費 km/L">
+<input id="dist" placeholder="距離">
+<input id="gas" placeholder="単価">
+<input id="fuel" placeholder="燃費">
 <input id="cars" placeholder="配車台数">
-<button class="primary" onclick="createTrip()">作成</button>
+<button class="primary" onclick="addTrip()">作成</button>
 </div>
 
 <div id="tripList"></div>
@@ -76,26 +95,26 @@ hr{border:none;border-top:1px solid #eee;}
 
 </div>
 
-<!-- NAV -->
 <div class="nav">
 <button onclick="show('login')">ログイン</button>
 <button onclick="show('admin')">管理</button>
+<button onclick="show('account')">会計</button>
 <button onclick="show('parent')">保護者</button>
 </div>
 
 <script>
 
-/* ===== DB ===== */
-
 let db = {
 adminPass: localStorage.getItem("adminPass") || "1234",
 families: JSON.parse(localStorage.getItem("families")||"[]"),
+accounts: JSON.parse(localStorage.getItem("accounts")||"[]"),
 trips: JSON.parse(localStorage.getItem("trips")||"[]")
 };
 
 function save(){
 localStorage.setItem("adminPass",db.adminPass);
 localStorage.setItem("families",JSON.stringify(db.families));
+localStorage.setItem("accounts",JSON.stringify(db.accounts));
 localStorage.setItem("trips",JSON.stringify(db.trips));
 }
 
@@ -109,41 +128,44 @@ render();
 
 /* ===== LOGIN ===== */
 
-function login(){
-let p=document.getElementById("pass").value;
-if(p===db.adminPass){
-show("admin");
-}
+function login(type){
+let p=pass.value;
+if(type==="admin" && p===db.adminPass) show("admin");
+if(type==="account") show("account");
 }
 
 /* ===== FAMILY ===== */
 
 function addFamily(){
-if(!famName.value) return;
-db.families.push(famName.value);
+db.families.push(fam.value);
 save();render();
+}
+
+/* ===== ACCOUNT ===== */
+
+function addAcc(){
+db.accounts.push({name:accN.value,pass:accP.value});
+save();
 }
 
 /* ===== TRIP ===== */
 
-function createTrip(){
-
-let participants = db.families.map(f=>({
-name:f,
-people:1,
-car:false,
-paid:false
-}));
+function addTrip(){
 
 db.trips.push({
 id:Date.now(),
 name:tName.value,
-date:tDate.value,
 dist:+dist.value,
 gas:+gas.value,
 fuel:+fuel.value,
 cars:+cars.value,
-participants
+
+participants: db.families.map(f=>({
+name:f,
+people:1,
+car:false,
+paid:false
+}))
 });
 
 save();render();
@@ -155,50 +177,52 @@ function calc(t){
 
 let total = Math.ceil(((t.dist*t.gas/t.fuel)*t.cars)/10)*10;
 
-let totalPeople = t.participants.reduce((a,b)=>a+b.people,0);
+let people = t.participants.reduce((a,b)=>a+b.people,0);
 
-let perPerson = Math.ceil(total / totalPeople);
+let per = Math.ceil(total/people);
 
 let carCount = t.participants.filter(p=>p.car).length || 1;
 
-let carShare = total / carCount;
+let carShare = total/carCount;
 
-let result = t.participants.map(p=>{
+return {
+total,
+per,
+result: t.participants.map(p=>{
 
-let burden = p.people * perPerson;
+let base = p.people*per;
 
-let isCar = p.car;
+let diff = p.car
+? Math.round(carShare-base)
+: -base;
 
-let diff = isCar
-? Math.round(carShare - burden)
-: -burden;
-
-return {...p, burden, diff};
-});
-
-return {total, perPerson, carShare, result};
+return {...p,base,diff};
+})
+};
 }
 
-/* ===== TOGGLE ===== */
+/* ===== UI ACTIONS ===== */
 
 function toggleCar(tid,name){
 
 let t=db.trips.find(x=>x.id===tid);
-
 let p=t.participants.find(x=>x.name===name);
-
 p.car=!p.car;
 
 save();render();
 }
 
-function changePeople(tid,name,val){
-
+function plus(tid,name){
 let t=db.trips.find(x=>x.id===tid);
 let p=t.participants.find(x=>x.name===name);
+p.people++;
+save();render();
+}
 
-p.people=Math.max(1,(p.people||1)+val);
-
+function minus(tid,name){
+let t=db.trips.find(x=>x.id===tid);
+let p=t.participants.find(x=>x.name===name);
+p.people=Math.max(1,p.people-1);
 save();render();
 }
 
@@ -206,86 +230,45 @@ save();render();
 
 function render(){
 
-/* FAMILY */
-familyList.innerHTML=db.families.map((f,i)=>
-`<div>${f}</div>`
-).join("");
+famList.innerHTML=db.families.map(f=>`<div>${f}</div>`).join("");
 
-/* TRIPS ADMIN */
 tripList.innerHTML=db.trips.map(t=>{
-
 let c=calc(t);
-
-let html = c.result.map(p=>{
-
-let mark = p.car ? "🚗配車" : "";
-
-let diffText =
-p.diff>=0 ? `＋${p.diff}円受取` : `－${Math.abs(p.diff)}円支払`;
-
-return `
-<div class="card">
-<b>${p.name}</b> ${mark}<br>
-人数：${p.people}<br>
-負担：${p.burden}円<br>
-差分：${diffText}<br>
-
-<button onclick="changePeople(${t.id},'${p.name}',1)">＋</button>
-<button onclick="changePeople(${t.id},'${p.name}',-1)">－</button>
-<button onclick="toggleCar(${t.id},'${p.name}')">配車切替</button>
-</div>`;
-}).join("");
 
 return `
 <div class="card">
 <h3>${t.name}</h3>
-総額：${c.total}円<br>
-1人単価：${c.perPerson}円
+総額：${c.total}円 / 1人：${c.per}
+
 <hr>
-${html}
 
-<button class="green" onclick="share(${t.id})">LINE共有</button>
-<button class="red" onclick="delTrip(${t.id})">削除</button>
-</div>`;
-}).join("");
+${c.result.map(p=>{
 
-/* PARENT */
-parentList.innerHTML=db.trips.map(t=>{
-let c=calc(t);
+let d = p.diff>=0 ? `＋${p.diff}円受取` : `－${Math.abs(p.diff)}円支払`;
+
 return `
 <div class="card">
-<b>${t.name}</b><br>
-総額：${c.total}円<br>
-1人：${c.perPerson}円
+<b>${p.name}</b> ${p.car?'🚗':''}<br>
+人数：${p.people}<br>
+負担：${p.base}円<br>
+差分：${d}<br>
+
+<button onclick="plus(${t.id},'${p.name}')">＋</button>
+<button onclick="minus(${t.id},'${p.name}')">－</button>
+<button onclick="toggleCar(${t.id},'${p.name}')">配車</button>
 </div>`;
+}).join("")}
+
+</div>`;
+}).join("");
+
+parentList.innerHTML=db.trips.map(t=>{
+let c=calc(t);
+return `<div class="card">${t.name} / ${c.total}円</div>`;
 }).join("");
 
 }
 
-/* ===== DELETE ===== */
-
-function delTrip(id){
-db.trips=db.trips.filter(t=>t.id!==id);
-save();render();
-}
-
-/* ===== LINE ===== */
-
-function share(id){
-
-let t=db.trips.find(x=>x.id===id);
-let c=calc(t);
-
-let txt =
-`${t.name}
-総額 ${c.total}円
-1人 ${c.perPerson}円`;
-
-let url="https://line.me/R/msg/text/?"+encodeURIComponent(txt);
-window.open(url);
-}
-
-/* INIT */
 render();
 
 </script>

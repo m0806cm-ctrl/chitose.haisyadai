@@ -3,24 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>配車代管理 v4.0 現場運用版</title>
+<title>配車代管理システム v5.0 完全版</title>
 
 <style>
 body{margin:0;font-family:Arial;background:#f4f6f8;}
-header{background:#0d47a1;color:#fff;padding:12px;text-align:center;font-weight:bold;}
-
+header{background:#0b3d91;color:#fff;padding:12px;text-align:center;font-weight:bold;}
 .container{padding:10px;padding-bottom:90px;}
 
 .card{background:#fff;margin:10px 0;padding:10px;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
 
 input{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:1px solid #ccc;}
 
-button{padding:10px;margin:3px;border:none;border-radius:8px;font-size:14px;}
+button{padding:10px;margin:3px;border:none;border-radius:8px;}
 
-.primary{background:#0d47a1;color:#fff;}
+.primary{background:#0b3d91;color:#fff;}
 .green{background:#2e7d32;color:#fff;}
 .red{background:#c62828;color:#fff;}
-.gray{background:#777;color:#fff;}
 
 .tab{display:none;}
 .tab.active{display:block;}
@@ -29,16 +27,13 @@ button{padding:10px;margin:3px;border:none;border-radius:8px;font-size:14px;}
 .nav button{flex:1;}
 
 .small{font-size:12px;color:#666;}
-
-.row{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
-
 hr{border:none;border-top:1px solid #eee;}
 </style>
 </head>
 
 <body>
 
-<header>配車代管理 v4.0（現場運用版）</header>
+<header>配車代管理 v5.0（完全統合版）</header>
 
 <div class="container">
 
@@ -76,10 +71,13 @@ hr{border:none;border-top:1px solid #eee;}
 <div class="card">
 <h3>遠征作成</h3>
 <input id="tName" placeholder="遠征名">
+<input id="tDate" type="date">
+
 <input id="dist" placeholder="距離">
-<input id="gas" placeholder="単価">
+<input id="gas" placeholder="ガソリン単価">
 <input id="fuel" placeholder="燃費">
 <input id="cars" placeholder="配車台数">
+
 <button class="primary" onclick="addTrip()">作成</button>
 </div>
 
@@ -103,6 +101,8 @@ hr{border:none;border-top:1px solid #eee;}
 </div>
 
 <script>
+
+/* ===== DB固定構造 ===== */
 
 let db = {
 adminPass: localStorage.getItem("adminPass") || "1234",
@@ -134,18 +134,16 @@ if(type==="admin" && p===db.adminPass) show("admin");
 if(type==="account") show("account");
 }
 
-/* ===== FAMILY ===== */
+/* ===== MASTER ===== */
 
 function addFamily(){
 db.families.push(fam.value);
 save();render();
 }
 
-/* ===== ACCOUNT ===== */
-
 function addAcc(){
 db.accounts.push({name:accN.value,pass:accP.value});
-save();
+save();render();
 }
 
 /* ===== TRIP ===== */
@@ -155,33 +153,37 @@ function addTrip(){
 db.trips.push({
 id:Date.now(),
 name:tName.value,
+date:tDate.value,
+
+settings:{
 dist:+dist.value,
 gas:+gas.value,
 fuel:+fuel.value,
-cars:+cars.value,
+cars:+cars.value
+},
 
 participants: db.families.map(f=>({
 name:f,
 people:1,
-car:false,
-paid:false
+isCar:false,
+collected:false
 }))
 });
 
 save();render();
 }
 
-/* ===== CALC CORE ===== */
+/* ===== CORE CALC ===== */
 
 function calc(t){
 
-let total = Math.ceil(((t.dist*t.gas/t.fuel)*t.cars)/10)*10;
+let total = Math.ceil(((t.settings.dist*t.settings.gas/t.settings.fuel)*t.settings.cars)/10)*10;
 
 let people = t.participants.reduce((a,b)=>a+b.people,0);
 
 let per = Math.ceil(total/people);
 
-let carCount = t.participants.filter(p=>p.car).length || 1;
+let carCount = t.participants.filter(p=>p.isCar).length || 1;
 
 let carShare = total/carCount;
 
@@ -192,7 +194,7 @@ result: t.participants.map(p=>{
 
 let base = p.people*per;
 
-let diff = p.car
+let diff = p.isCar
 ? Math.round(carShare-base)
 : -base;
 
@@ -201,14 +203,12 @@ return {...p,base,diff};
 };
 }
 
-/* ===== UI ACTIONS ===== */
+/* ===== ACTIONS ===== */
 
 function toggleCar(tid,name){
-
 let t=db.trips.find(x=>x.id===tid);
 let p=t.participants.find(x=>x.name===name);
-p.car=!p.car;
-
+p.isCar=!p.isCar;
 save();render();
 }
 
@@ -238,20 +238,20 @@ let c=calc(t);
 return `
 <div class="card">
 <h3>${t.name}</h3>
-総額：${c.total}円 / 1人：${c.per}
+総額:${c.total}円 / 1人:${c.per}
 
 <hr>
 
 ${c.result.map(p=>{
 
-let d = p.diff>=0 ? `＋${p.diff}円受取` : `－${Math.abs(p.diff)}円支払`;
+let d=p.diff>=0?`＋${p.diff}円受取`:`－${Math.abs(p.diff)}円支払`;
 
 return `
 <div class="card">
-<b>${p.name}</b> ${p.car?'🚗':''}<br>
-人数：${p.people}<br>
-負担：${p.base}円<br>
-差分：${d}<br>
+<b>${p.name}</b> ${p.isCar?'🚗':''}<br>
+人数:${p.people}<br>
+負担:${p.base}円<br>
+差分:${d}<br>
 
 <button onclick="plus(${t.id},'${p.name}')">＋</button>
 <button onclick="minus(${t.id},'${p.name}')">－</button>
@@ -264,7 +264,7 @@ return `
 
 parentList.innerHTML=db.trips.map(t=>{
 let c=calc(t);
-return `<div class="card">${t.name} / ${c.total}円</div>`;
+return `<div class="card">${t.name} / ${c.total}円 / ${c.per}円</div>`;
 }).join("");
 
 }

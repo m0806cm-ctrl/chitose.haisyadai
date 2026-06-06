@@ -3,76 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>部活配車代管理システム v3.1</title>
+<title>部活配車代管理 v3.2</title>
+
 <style>
-body{font-family:Arial;margin:0;background:#f4f6f8;color:#333;}
-header{background:#1e88e5;color:#fff;padding:12px;text-align:center;font-weight:bold;}
-button{padding:10px;border:none;border-radius:8px;margin:4px;font-size:14px;}
-input,select{padding:10px;margin:4px;width:calc(100% - 20px);border:1px solid #ccc;border-radius:8px;}
-.container{padding:10px;}
-.card{background:#fff;padding:10px;margin:10px 0;border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
-.row{display:flex;flex-wrap:wrap;}
-.row > div{flex:1;min-width:120px;}
+body{margin:0;font-family:Arial;background:#f4f6f8;color:#333;}
+header{background:#1976d2;color:#fff;padding:12px;text-align:center;font-weight:bold;}
+.container{padding:10px;padding-bottom:80px;}
+.card{background:#fff;border-radius:10px;padding:10px;margin:10px 0;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+input{width:100%;padding:10px;margin:5px 0;border:1px solid #ccc;border-radius:8px;}
+button{padding:10px;margin:5px;border:none;border-radius:8px;font-size:14px;}
+.primary{background:#1976d2;color:#fff;}
+.green{background:#43a047;color:#fff;}
+.red{background:#e53935;color:#fff;}
+.gray{background:#777;color:#fff;}
 .tab{display:none;}
 .tab.active{display:block;}
 .nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid #ccc;}
 .nav button{flex:1;margin:0;border-radius:0;}
-h3{margin:8px 0;}
 .small{font-size:12px;color:#666;}
-.primary{background:#1e88e5;color:#fff;}
-.danger{background:#e53935;color:#fff;}
-.green{background:#43a047;color:#fff;}
+hr{border:none;border-top:1px solid #eee;margin:8px 0;}
 </style>
 </head>
+
 <body>
 
-<header>部活配車代管理 v3.1</header>
+<header>配車代管理システム v3.2</header>
 
 <div class="container">
 
-<!-- LOGIN / SETUP -->
+<!-- SETUP -->
 <div id="setup" class="tab">
 <h3>初期設定</h3>
 <input id="adminPass1" type="password" placeholder="管理者パスワード">
 <input id="adminPass2" type="password" placeholder="確認">
-<button class="primary" onclick="saveAdmin()">保存</button>
+<button class="primary" onclick="initAdmin()">保存</button>
 </div>
 
+<!-- LOGIN -->
 <div id="login" class="tab">
 <h3>ログイン</h3>
-<input id="loginPass" type="password" placeholder="パスワード">
+<input id="pass" type="password" placeholder="パスワード">
 <button class="primary" onclick="login('admin')">管理者</button>
 <button class="green" onclick="login('account')">会計</button>
-<button onclick="guest()">保護者閲覧</button>
+<button onclick="guest()">保護者</button>
 </div>
 
 <!-- ADMIN -->
 <div id="admin" class="tab">
-<h3>管理者</h3>
 
 <div class="card">
-<h4>家庭マスタ</h4>
-<input id="familyName" placeholder="苗字">
+<h3>家庭マスタ</h3>
+<input id="famName" placeholder="苗字">
 <button class="primary" onclick="addFamily()">追加</button>
-<div id="familyList"></div>
+<div id="famList"></div>
 </div>
 
 <div class="card">
-<h4>会計担当</h4>
+<h3>会計アカウント</h3>
 <input id="accName" placeholder="名前">
 <input id="accPass" placeholder="パスワード">
-<button class="primary" onclick="addAccount()">追加</button>
+<button class="primary" onclick="addAcc()">追加</button>
 <div id="accList"></div>
 </div>
 
 <div class="card">
-<h4>パスワード変更</h4>
-<input id="newAdminPass" type="password" placeholder="新パスワード">
-<button class="primary" onclick="changeAdmin()">変更</button>
-</div>
-
-<div class="card">
-<h4>バックアップ</h4>
+<h3>バックアップ</h3>
 <button onclick="exportData()">JSON出力</button>
 <input type="file" onchange="importData(event)">
 </div>
@@ -81,15 +76,14 @@ h3{margin:8px 0;}
 
 <!-- ACCOUNT -->
 <div id="account" class="tab">
-<h3>会計</h3>
 
 <div class="card">
-<h4>遠征作成</h4>
-<input id="tripName" placeholder="遠征名">
-<input id="tripDate" type="date">
-<input id="distance" placeholder="距離(km)">
+<h3>遠征作成</h3>
+<input id="tName" placeholder="遠征名">
+<input id="tDate" type="date">
+<input id="dist" placeholder="距離 km">
 <input id="gas" placeholder="ガソリン単価">
-<input id="fuel" placeholder="燃費">
+<input id="fuel" placeholder="燃費 km/L">
 <input id="cars" placeholder="配車台数">
 <button class="primary" onclick="addTrip()">作成</button>
 </div>
@@ -100,13 +94,12 @@ h3{margin:8px 0;}
 
 <!-- PARENT -->
 <div id="parent" class="tab">
-<h3>保護者ページ</h3>
+<h3>保護者閲覧</h3>
 <div id="parentList"></div>
 </div>
 
 </div>
 
-<!-- NAV -->
 <div class="nav">
 <button onclick="show('login')">ログイン</button>
 <button onclick="show('admin')">管理</button>
@@ -115,14 +108,13 @@ h3{margin:8px 0;}
 </div>
 
 <script>
+
 let db = {
 adminPass: localStorage.getItem("adminPass"),
 families: JSON.parse(localStorage.getItem("families")||"[]"),
 accounts: JSON.parse(localStorage.getItem("accounts")||"[]"),
 trips: JSON.parse(localStorage.getItem("trips")||"[]")
 };
-
-let role="";
 
 function save(){
 localStorage.setItem("adminPass",db.adminPass);
@@ -138,103 +130,152 @@ render();
 }
 
 function init(){
-if(!db.adminPass){
-show("setup");
-}else{
-show("login");
-}
+db.adminPass ? show("login") : show("setup");
 }
 init();
 
-function saveAdmin(){
-let p1=document.getElementById("adminPass1").value;
-let p2=document.getElementById("adminPass2").value;
-if(p1&&p1===p2){
-db.adminPass=p1;save();show("login");
+/* ===== ADMIN ===== */
+
+function initAdmin(){
+let a=document.getElementById("adminPass1").value;
+let b=document.getElementById("adminPass2").value;
+if(a && a===b){
+db.adminPass=a;save();show("login");
 }
 }
 
 function login(type){
-let pass=document.getElementById("loginPass").value;
-if(type==="admin" && pass===db.adminPass){role="admin";show("admin");}
-else if(type==="account"){
-let ok=db.accounts.find(a=>a.pass===pass);
-if(ok){role="account";show("account");}
-}
+let p=document.getElementById("pass").value;
+if(type==="admin" && p===db.adminPass) show("admin");
+else if(type==="account") show("account");
 }
 
-function guest(){role="guest";show("parent");}
+function guest(){show("parent");}
 
 function addFamily(){
-let n=document.getElementById("familyName").value;
-db.families.push(n);save();render();
-}
-
-function addAccount(){
-db.accounts.push({name:document.getElementById("accName").value,pass:document.getElementById("accPass").value});
+db.families.push(document.getElementById("famName").value);
 save();render();
 }
 
-function changeAdmin(){
-db.adminPass=document.getElementById("newAdminPass").value;save();
+function addAcc(){
+db.accounts.push({
+name:accName.value,
+pass:accPass.value
+});
+save();render();
 }
 
+/* ===== TRIP ===== */
+
 function addTrip(){
-let t={
-name:tripName.value,
-date:tripDate.value,
-distance:+distance.value,
+
+let families = db.families.map(f=>({
+name:f,
+people:1,
+isCar:false,
+collected:false
+}));
+
+db.trips.push({
+name:tName.value,
+date:tDate.value,
+dist:+dist.value,
 gas:+gas.value,
 fuel:+fuel.value,
 cars:+cars.value,
-families:db.families.map(f=>({name:f,count:1,paid:false}))
-};
-db.trips.push(t);save();render();
+families
+});
+
+save();render();
 }
+
+/* ===== CALC ===== */
 
 function calc(t){
-let total=Math.ceil(((t.distance*t.gas/t.fuel)*t.cars)/10)*10;
-let per=Math.ceil(total/(t.families.reduce((a,b)=>a+b.count,0)||1));
-return {total,per};
+
+let total = Math.ceil(((t.dist*t.gas/t.fuel)*t.cars)/10)*10;
+
+let totalPeople = t.families.reduce((a,b)=>a+b.people,0);
+let perPerson = Math.ceil(total / totalPeople);
+
+let carShare = total / (t.cars || 1);
+
+let result = t.families.map(f=>{
+let burden = f.people * perPerson;
+let diff = Math.round(carShare - burden);
+return {...f, burden, diff};
+});
+
+return {total, perPerson, carShare, result};
 }
+
+/* ===== RENDER ===== */
 
 function render(){
-familyList.innerHTML=db.families.map((f,i)=>`<div>${f}<button onclick="delFam(${i})">削除</button></div>`).join("");
-accList.innerHTML=db.accounts.map((a,i)=>`<div>${a.name}<button onclick="delAcc(${i})">削除</button></div>`).join("");
 
-tripList.innerHTML=db.trips.map((t,i)=>{
+famList.innerHTML = db.families.map((f,i)=>
+`<div>${f} <button onclick="db.families.splice(${i},1);save();render()">削除</button></div>`
+).join("");
+
+accList.innerHTML = db.accounts.map((a,i)=>
+`<div>${a.name} <button onclick="db.accounts.splice(${i},1);save();render()">削除</button></div>`
+).join("");
+
+/* ACCOUNT */
+tripList.innerHTML = db.trips.map((t,i)=>{
 let c=calc(t);
-return `<div class="card">
+
+let lines = c.result.map(r=>{
+if(r.isCar){
+let msg = r.diff>=0 ? `＋${r.diff}円受け取り` : `−${Math.abs(r.diff)}円支払い`;
+return `<div><b>${r.name}</b>（配車）→ ${msg}</div>`;
+}
+return `<div>${r.name} 負担:${r.burden}円</div>`;
+}).join("");
+
+return `
+<div class="card">
 <b>${t.name}</b><br>
-総額:${c.total}円 / 1人:${c.per}円
-<button onclick="delTrip(${i})">削除</button>
-<button onclick="share(${i})">LINE</button>
+総額:${c.total}円 / 1人:${c.perPerson}円
+<hr>
+${lines}
+<button class="red" onclick="db.trips.splice(${i},1);save();render()">削除</button>
+<button class="green" onclick="share(${i})">LINE</button>
 </div>`;
 }).join("");
 
-parentList.innerHTML=db.trips.map(t=>{
+/* PARENT */
+parentList.innerHTML = db.trips.map(t=>{
 let c=calc(t);
-return `<div class="card">
-<b>${t.name}</b><br>総額:${c.total}円 / 1人:${c.per}円
+return `
+<div class="card">
+<b>${t.name}</b><br>
+総額:${c.total}円<br>
+1人:${c.perPerson}円
 </div>`;
 }).join("");
+
 }
 
-function delFam(i){db.families.splice(i,1);save();render();}
-function delAcc(i){db.accounts.splice(i,1);save();render();}
-function delTrip(i){db.trips.splice(i,1);save();render();}
+/* ===== LINE ===== */
 
 function share(i){
 let t=db.trips[i];
 let c=calc(t);
-let url=`https://line.me/R/msg/text/?${encodeURIComponent(t.name+" 総額"+c.total+"円 1人"+c.per+"円")}`;
+
+let txt =
+`${t.name}\n総額 ${c.total}円\n1人 ${c.perPerson}円`;
+
+let url="https://line.me/R/msg/text/?"+encodeURIComponent(txt);
 window.open(url);
 }
 
+/* ===== BACKUP ===== */
+
 function exportData(){
-let blob=new Blob([JSON.stringify(db)],{type:"application/json"});
+let b=new Blob([JSON.stringify(db)],{type:"application/json"});
 let a=document.createElement("a");
-a.href=URL.createObjectURL(blob);
+a.href=URL.createObjectURL(b);
 a.download="backup.json";
 a.click();
 }
@@ -242,7 +283,8 @@ a.click();
 function importData(e){
 let r=new FileReader();
 r.onload=()=>{
-db=JSON.parse(r.result);save();render();
+db=JSON.parse(r.result);
+save();render();
 };
 r.readAsText(e.target.files[0]);
 }

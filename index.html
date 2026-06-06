@@ -3,230 +3,241 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>部活配車代管理システム</title>
+<title>配車代システム v3</title>
 
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;background:#f4f6f8}
-.header{background:#1f4e79;color:#fff;padding:14px;text-align:center;font-weight:bold}
+body{font-family:sans-serif;margin:0;background:#f4f6f8}
+.header{background:#1f4e79;color:#fff;padding:14px;text-align:center}
 
-.tabs{display:flex;position:sticky;top:0;background:#fff}
-.tab{flex:1;padding:12px;border:none;background:#fff}
-.tab.active{background:#1f4e79;color:#fff}
-
-.page{display:none;max-width:520px;margin:auto;padding:12px}
-.page.active{display:block}
-
-.card{background:#fff;padding:14px;border-radius:12px;margin:10px 0;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.page{padding:12px;max-width:600px;margin:auto}
+.card{background:#fff;padding:12px;margin:10px 0;border-radius:10px}
 
 input{width:100%;padding:8px;margin:6px 0}
-
-button{padding:10px;border:none;border-radius:6px;cursor:pointer}
+button{padding:8px;border:none;border-radius:6px;cursor:pointer}
 .primary{background:#1f4e79;color:#fff;width:100%}
-.small{padding:4px 8px;font-size:12px}
-
 .row{display:flex;justify-content:space-between;align-items:center;margin:6px 0}
-.badge{font-size:12px;padding:2px 6px;border-radius:6px;background:#eee}
-.paid{color:green;font-weight:bold}
-.unpaid{color:#d11}
-textarea{width:100%;height:120px}
+.small{font-size:12px;padding:4px 6px}
 table{width:100%;border-collapse:collapse}
-td,th{padding:6px;border-bottom:1px solid #ddd;text-align:left}
+td,th{border-bottom:1px solid #ddd;padding:6px;text-align:left}
+textarea{width:100%;height:120px}
 </style>
 </head>
 
 <body>
 
-<div class="header">⚾ 配車代管理システム（現場版）</div>
+<div class="header">配車代管理（遠征単位版）</div>
 
-<div class="tabs">
-<button class="tab active" onclick="show('admin',this)">管理</button>
-<button class="tab" onclick="show('accounting',this)">会計</button>
-<button class="tab" onclick="show('parent',this)">保護者</button>
-</div>
+<div class="page">
 
-<!-- 管理 -->
-<div id="admin" class="page active">
+<!-- 家庭マスタ -->
 <div class="card">
-<h3>家庭マスタ</h3>
-
-<input id="name" placeholder="苗字">
+<h3>① 家庭マスタ</h3>
+<input id="familyName" placeholder="苗字">
 <button class="primary" onclick="addFamily()">追加</button>
 
 <div id="familyList"></div>
 </div>
-</div>
 
-<!-- 会計 -->
-<div id="accounting" class="page">
-
+<!-- 遠征作成 -->
 <div class="card">
-<h3>遠征情報</h3>
+<h3>② 遠征作成</h3>
 
 <input id="tripName" placeholder="遠征名">
-<input id="distance" type="number" placeholder="距離(km)">
+<input id="distance" type="number" placeholder="距離">
 <input id="gas" type="number" placeholder="ガソリン単価">
-<input id="fuel" type="number" placeholder="燃費(km/L)">
+<input id="fuel" type="number" placeholder="燃費">
 <input id="carCount" type="number" placeholder="配車台数" value="1">
-<input id="participants" type="number" placeholder="参加人数（当日入力）">
 
-<button class="primary" onclick="calc()">計算</button>
+<button class="primary" onclick="createTrip()">遠征作成</button>
 </div>
 
-<div class="card">
-<h3>配車チェック</h3>
-<div id="carList"></div>
-</div>
+<!-- 現在の遠征 -->
+<div class="card" id="tripArea"></div>
 
+<!-- LINE -->
 <div class="card">
-<h3>結果</h3>
-<div id="result">未計算</div>
-</div>
-
-<div class="card">
-<button class="primary" onclick="makeLine()">LINE共有</button>
+<button class="primary" onclick="makeLine()">LINE生成</button>
 <textarea id="line"></textarea>
 </div>
 
 </div>
 
-<!-- 保護者 -->
-<div id="parent" class="page">
-<div class="card" id="parentView">未計算</div>
-</div>
-
 <script>
 
-let db = JSON.parse(localStorage.getItem("car-db") || '{"families":[]}');
-let last = null;
+let db = JSON.parse(localStorage.getItem("db")||'{"families":[],"trips":[]}');
+let currentTripId = null;
 
 function save(){
-localStorage.setItem("car-db",JSON.stringify(db));
+localStorage.setItem("db",JSON.stringify(db));
 render();
 }
 
 function addFamily(){
-const name=document.getElementById("name").value.trim();
-if(!name)return alert("入力");
+const name=document.getElementById("familyName").value.trim();
+if(!name)return;
 
-db.families.push({
-id:Date.now(),
-name,
-car:false,
-paid:false
-});
-
-document.getElementById("name").value="";
+db.families.push({id:Date.now(),name});
+document.getElementById("familyName").value="";
 save();
 }
 
 function deleteFamily(id){
-if(!confirm("削除しますか？"))return;
 db.families=db.families.filter(f=>f.id!==id);
 save();
 }
 
-function toggleCar(id){
-db.families=db.families.map(f=>{
-if(f.id===id) f.car=!f.car;
-return f;
-});
+function createTrip(){
+
+const trip={
+id:Date.now(),
+name:document.getElementById("tripName").value,
+distance:+document.getElementById("distance").value,
+gas:+document.getElementById("gas").value,
+fuel:+document.getElementById("fuel").value,
+carCount:+document.getElementById("carCount").value,
+participants:[]
+};
+
+if(!trip.name) return alert("遠征名必須");
+
+db.trips.push(trip);
+currentTripId=trip.id;
+
 save();
 }
 
-function togglePaid(id){
-db.families=db.families.map(f=>{
-if(f.id===id) f.paid=!f.paid;
-return f;
-});
+function getTrip(){
+return db.trips.find(t=>t.id===currentTripId);
+}
+
+function toggleJoin(fid){
+
+const t=getTrip();
+if(!t) return;
+
+const p=t.participants.find(p=>p.familyId===fid);
+
+if(p){
+t.participants=t.participants.filter(p=>p.familyId!==fid);
+}else{
+t.participants.push({familyId:fid,members:1,car:false,paid:false});
+}
+
+save();
+}
+
+function setMembers(fid,val){
+const t=getTrip();
+const p=t.participants.find(p=>p.familyId===fid);
+if(p) p.members=+val;
+save();
+}
+
+function toggleCar(fid){
+const t=getTrip();
+const p=t.participants.find(p=>p.familyId===fid);
+if(p) p.car=!p.car;
+save();
+}
+
+function togglePaid(fid){
+const t=getTrip();
+const p=t.participants.find(p=>p.familyId===fid);
+if(p) p.paid=!p.paid;
 save();
 }
 
 function calc(){
+const t=getTrip();
+if(!t) return;
 
-const tripName=document.getElementById("tripName").value;
-const distance=Number(document.getElementById("distance").value);
-const gas=Number(document.getElementById("gas").value);
-const fuel=Number(document.getElementById("fuel").value);
-const carCount=Number(document.getElementById("carCount").value);
-const participants=Number(document.getElementById("participants").value);
-
-if(!tripName||distance<=0||gas<=0||fuel<=0||carCount<=0||participants<=0){
-alert("入力エラー");
-return;
-}
-
-let total=(distance*gas)/fuel;
-total*=carCount;
+let total=(t.distance*t.gas)/t.fuel*t.carCount;
 total=Math.ceil(total/10)*10;
 
-const per=Math.ceil(total/participants);
+const people=t.participants.reduce((a,b)=>a+b.members,0);
+const per=Math.ceil(total/people);
 
-const activeCars=db.families.filter(f=>f.car);
+t.result={total,per};
 
-last={
-tripName,total,per,participants
-};
-
-document.getElementById("result").innerHTML=`
-<h3>${tripName}</h3>
-<div>総額：${total}円</div>
-<div>1人あたり：${per}円</div>
-<div>参加人数：${participants}</div>
-`;
-
-document.getElementById("parentView").innerHTML=
-db.families.map(f=>`
-<div>
-${f.name}：${f.paid?"支払い済":per+"円"}
-</div>
-`).join("");
-}
-
-function makeLine(){
-if(!last)return alert("未計算");
-
-document.getElementById("line").value=
-`${last.tripName}
-
-1人あたり：${last.per}円
-参加人数：${last.participants}
-
-このURL：
-${location.href}`;
+save();
 }
 
 function render(){
 
+// 家庭一覧
 document.getElementById("familyList").innerHTML=
 db.families.map(f=>`
 <div class="row">
 <span>${f.name}</span>
-<div>
-<button class="small" onclick="toggleCar(${f.id})">
-${f.car?"🚗":"未"}
-</button>
-<button class="small" onclick="togglePaid(${f.id})">
-${f.paid?"済":"未"}
-</button>
-<button class="small" onclick="deleteFamily(${f.id})">削除</button>
-</div>
+<button onclick="deleteFamily(${f.id})">削除</button>
 </div>
 `).join("");
 
-document.getElementById("carList").innerHTML=
-db.families.map(f=>`
-<label>
-<input type="checkbox" ${f.car?"checked":""} onclick="toggleCar(${f.id})">
-${f.name}
-</label>
-`).join("");
+// 遠征UI
+const t=getTrip();
+
+if(!t){
+document.getElementById("tripArea").innerHTML="遠征未選択";
+return;
 }
 
-function show(id,btn){
-document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-btn.classList.add("active");
+document.getElementById("tripArea").innerHTML=`
+<h3>${t.name}</h3>
+
+<button onclick="calc()">計算</button>
+
+<table>
+<tr><th>家庭</th><th>参加</th><th>人数</th><th>車</th><th>集金</th></tr>
+${
+db.families.map(f=>{
+const p=t.participants.find(x=>x.familyId===f.id);
+
+return `
+<tr>
+<td>${f.name}</td>
+
+<td>
+<input type="checkbox" ${p?'checked':''}
+onclick="toggleJoin(${f.id})">
+</td>
+
+<td>
+<input type="number" value="${p?p.members:1}"
+onchange="setMembers(${f.id},this.value)">
+</td>
+
+<td>
+<input type="checkbox" ${p&&p.car?'checked':''}
+onclick="toggleCar(${f.id})">
+</td>
+
+<td>
+<input type="checkbox" ${p&&p.paid?'checked':''}
+onclick="togglePaid(${f.id})">
+</td>
+
+</tr>`;
+}).join("")
+}
+</table>
+
+${
+t.result?
+`<h3>総額 ${t.result.total}円 / 1人 ${t.result.per}円</h3>`
+:""
+}
+`;
+}
+
+function makeLine(){
+const t=getTrip();
+if(!t||!t.result) return;
+
+document.getElementById("line").value=
+`${t.name}
+総額 ${t.result.total}円
+1人 ${t.result.per}円
+参加人数 ${t.participants.reduce((a,b)=>a+b.members,0)}人`;
 }
 
 render();

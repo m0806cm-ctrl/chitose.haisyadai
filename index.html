@@ -105,7 +105,7 @@ hr{border:none;border-top:1px solid #eee;}
 /* ===== DB固定構造 ===== */
 
 let db = {
-adminPass: localStorage.getItem("adminPass") || "1234",
+adminPass: localStorage.getItem("adminPass") || "",
 families: JSON.parse(localStorage.getItem("families")||"[]"),
 accounts: JSON.parse(localStorage.getItem("accounts")||"[]"),
 trips: JSON.parse(localStorage.getItem("trips")||"[]")
@@ -125,13 +125,52 @@ document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
 document.getElementById(id).classList.add("active");
 render();
 }
+<!-- FIRST SETUP -->
 
+<div id="setup" class="tab">
+
+<div class="card">
+
+<h3>初回設定</h3>
+
+<p>管理者パスワードを設定してください</p>
+
+<input id="newAdmin1" type="password" placeholder="パスワード">
+
+<input id="newAdmin2" type="password" placeholder="確認">
+
+<button class="primary" onclick="saveFirstAdmin()">
+保存
+</button>
+
+</div>
+
+</div>
 /* ===== LOGIN ===== */
 
-function login(type){
-let p=pass.value;
-if(type==="admin" && p===db.adminPass) show("admin");
-if(type==="account") show("account");
+function saveFirstAdmin(){
+
+let p1=document.getElementById("newAdmin1").value;
+let p2=document.getElementById("newAdmin2").value;
+
+if(!p1){
+alert("パスワードを入力してください");
+return;
+}
+
+if(p1!==p2){
+alert("確認用パスワードが一致しません");
+return;
+}
+
+db.adminPass=p1;
+
+save();
+
+alert("保存しました");
+
+show("login");
+
 }
 
 /* ===== MASTER ===== */
@@ -270,7 +309,11 @@ return `<div class="card">${t.name} / ${c.total}円 / ${c.per}円</div>`;
 }
 
 render();
-
+if(!db.adminPass){
+show("setup");
+}else{
+show("login");
+}
 </script>
 
 </body>

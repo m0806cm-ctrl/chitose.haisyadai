@@ -181,11 +181,21 @@ border-radius:0;
 
 <div class="card">
 
-<h3>会計ページ</h3>
+<h3>遠征作成</h3>
 
-<p>遠征管理は次フェーズで実装</p>
+<input id="tripName" placeholder="遠征名">
+
+<input id="tripDate" type="date">
+
+<input id="tripCost" type="number" placeholder="総配車代">
+
+<button class="primary" onclick="addTrip()">
+遠征作成
+</button>
 
 </div>
+
+<div id="tripList"></div>
 
 </div>
 
@@ -224,9 +234,66 @@ localStorage.getItem("families")||"[]"
 accounts:JSON.parse(
 localStorage.getItem("accounts")||"[]"
 )
+,
+
+trips:JSON.parse(
+localStorage.getItem("trips")||"[]"
+)
+};
+function addTrip(){
+
+let trip={
+
+id:Date.now(),
+
+name:document.getElementById("tripName").value,
+
+date:document.getElementById("tripDate").value,
+
+cost:Number(
+document.getElementById("tripCost").value
+),
+
+participants:db.families.map(f=>({
+name:f,
+people:1,
+isCar:false,
+collected:false
+}))
 
 };
 
+db.trips.push(trip);
+
+saveDB();
+
+renderTrips();
+
+}
+
+function renderTrips(){
+
+let area=
+document.getElementById("tripList");
+
+if(!area)return;
+
+area.innerHTML=
+db.trips.map(t=>`
+
+<div class="card">
+
+<b>${t.name}</b><br>
+
+日付:${t.date}<br>
+
+総配車代:${t.cost}円
+
+</div>
+
+`).join("");
+
+}renderLists();
 function saveDB(){
 localStorage.setItem(
 "families",
@@ -292,7 +359,10 @@ alert("保存しました");
 showTab("login");
 
 }
-
+localStorage.setItem(
+"trips",
+JSON.stringify(db.trips)
+);
 function loginAdmin(){
 
 let p=
@@ -426,6 +496,7 @@ onclick="deleteAccount(${i})">
 }
 
 renderLists();
+renderTrips();
 </script>
 
 </body>

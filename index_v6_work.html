@@ -474,30 +474,6 @@ onclick="deleteFamily(${i})">
 
 }
 
-let al=
-document.getElementById("accountList");
-
-if(al){
-
-al.innerHTML=
-db.accounts.map((a,i)=>`
-
-<div>
-${a.name}
-<button class="red"
-onclick="deleteAccount(${i})">
-削除
-</button>
-</div>
-
-`).join("");
-
-}
-
-}
-
-renderLists();
-renderTrips();
 
 if(!db.adminPass){
     showTab("setup");

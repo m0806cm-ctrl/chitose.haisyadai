@@ -242,18 +242,18 @@ localStorage.getItem("trips")||"[]"
 };
 function addTrip(){
 
-let name=
+let name =
 document.getElementById("tripName").value;
 
-let date=
+let date =
 document.getElementById("tripDate").value;
 
-let cost=
+let cost =
 Number(document.getElementById("tripCost").value);
 
 if(!name || !date || !cost){
-alert("遠征情報を入力してください");
-return;
+    alert("遠征情報を入力してください");
+    return;
 }
 
 let trip={
@@ -395,14 +395,13 @@ alert("パスワードが違います");
 
 }
 
+renderLists();
+renderTrips();
+
 if(!db.adminPass){
-
-showTab("setup");
-
+    showTab("setup");
 }else{
-
-showTab("login");
-
+    showTab("login");
 }
 function addFamily(){
 

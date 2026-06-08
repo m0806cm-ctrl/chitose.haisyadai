@@ -451,29 +451,41 @@ saveDB();
 renderLists();
 
 }
-
 function renderLists(){
 
-let fl=
-document.getElementById("familyList");
+    let fl = document.getElementById("familyList");
 
-if(fl){
+    if(fl){
+        fl.innerHTML =
+        db.families.map((f,i)=>`
+            <div>
+                ${f}
+                <button class="red"
+                    onclick="deleteFamily(${i})">
+                    削除
+                </button>
+            </div>
+        `).join("");
+    }
 
-fl.innerHTML=
-db.families.map((f,i)=>`
+    let al = document.getElementById("accountList");
 
-<div>
-${f}
-<button class="red"
-onclick="deleteFamily(${i})">
-削除
-</button>
-</div>
-
-`).join("");
-
+    if(al){
+        al.innerHTML =
+        db.accounts.map((a,i)=>`
+            <div>
+                ${a.name}
+                <button class="red"
+                    onclick="deleteAccount(${i})">
+                    削除
+                </button>
+            </div>
+        `).join("");
+    }
 }
 
+renderLists();
+renderTrips();
 
 if(!db.adminPass){
     showTab("setup");
@@ -484,34 +496,10 @@ let al=
 document.getElementById("accountList");
 
 if(al){
-
-al.innerHTML=
-db.accounts.map((a,i)=>`
-
-<div>
-
-${a.name}
-
-<button class="red"
-onclick="deleteAccount(${i})">
-削除
-</button>
-
-</div>
-
-`).join("");
-
+...
 }
 
 }
-
 
 renderLists();
 renderTrips();
-
-
-
-</script>
-
-</body>
-</html>

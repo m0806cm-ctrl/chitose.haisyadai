@@ -395,14 +395,7 @@ alert("パスワードが違います");
 
 }
 
-renderLists();
-renderTrips();
 
-if(!db.adminPass){
-    showTab("setup");
-}else{
-    showTab("login");
-}
 function addFamily(){
 
 let n=
@@ -483,7 +476,14 @@ onclick="deleteFamily(${i})">
 `).join("");
 
 }
+renderLists();
+renderTrips();
 
+if(!db.adminPass){
+    showTab("setup");
+}else{
+    showTab("login");
+}
 let al=
 document.getElementById("accountList");
 

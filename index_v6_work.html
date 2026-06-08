@@ -145,14 +145,43 @@ border-radius:0;
 </div>
 
 <div id="admin" class="tab">
+<div id="admin" class="tab">
+
 <div class="card">
-<h3>管理者ページ</h3>
-<p>作成中</p>
-</div>
+
+<h3>家庭マスタ</h3>
+
+<input id="familyName" placeholder="苗字">
+
+<button class="primary"
+onclick="addFamily()">
+追加
+</button>
+
+<div id="familyList"></div>
+
 </div>
 
-<div id="account" class="tab">
 <div class="card">
+
+<h3>会計担当管理</h3>
+
+<input id="accountName"
+placeholder="名前">
+
+<input id="accountPass"
+placeholder="パスワード">
+
+<button class="green"
+onclick="addAccount()">
+追加
+</button>
+
+<div id="accountList"></div>
+
+</div>
+
+</div>
 <h3>会計ページ</h3>
 <p>作成中</p>
 </div>
@@ -177,12 +206,31 @@ border-radius:0;
 <script>
 
 let db={
+
 adminPass:localStorage.getItem("adminPass")||"",
-recoveryCode:localStorage.getItem("recoveryCode")||""
+
+recoveryCode:localStorage.getItem("recoveryCode")||"",
+
+families:JSON.parse(
+localStorage.getItem("families")||"[]"
+),
+
+accounts:JSON.parse(
+localStorage.getItem("accounts")||"[]"
+)
+
 };
 
 function saveDB(){
+localStorage.setItem(
+"families",
+JSON.stringify(db.families)
+);
 
+localStorage.setItem(
+"accounts",
+JSON.stringify(db.accounts)
+);
 localStorage.setItem(
 "adminPass",
 db.adminPass
@@ -265,7 +313,113 @@ showTab("setup");
 showTab("login");
 
 }
+function addFamily(){
 
+let n=
+document.getElementById("familyName").value;
+
+if(!n)return;
+
+db.families.push(n);
+
+saveDB();
+
+renderLists();
+
+}
+
+function deleteFamily(i){
+
+db.families.splice(i,1);
+
+saveDB();
+
+renderLists();
+
+}
+
+function addAccount(){
+
+let n=
+document.getElementById("accountName").value;
+
+let p=
+document.getElementById("accountPass").value;
+
+if(!n||!p)return;
+
+db.accounts.push({
+name:n,
+pass:p
+});
+
+saveDB();
+
+renderLists();
+
+}
+
+function deleteAccount(i){
+
+db.accounts.splice(i,1);
+
+saveDB();
+
+renderLists();
+
+}
+
+function renderLists(){
+
+let fl=
+document.getElementById("familyList");
+
+if(fl){
+
+fl.innerHTML=
+db.families.map((f,i)=>`
+
+<div>
+
+${f}
+
+<button class="red"
+onclick="deleteFamily(${i})">
+削除
+</button>
+
+</div>
+
+`).join("");
+
+}
+
+let al=
+document.getElementById("accountList");
+
+if(al){
+
+al.innerHTML=
+db.accounts.map((a,i)=>`
+
+<div>
+
+${a.name}
+
+<button class="red"
+onclick="deleteAccount(${i})">
+削除
+</button>
+
+</div>
+
+`).join("");
+
+}
+
+}
+
+renderLists();
 </script>
 
 </body>

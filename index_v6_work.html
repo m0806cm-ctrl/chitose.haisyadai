@@ -293,7 +293,7 @@ db.trips.map(t=>`
 
 `).join("");
 
-}renderLists();
+}
 function saveDB(){
 
 localStorage.setItem(
@@ -306,6 +306,10 @@ localStorage.setItem(
 JSON.stringify(db.accounts)
 );
 
+localStorage.setItem(
+"trips",
+JSON.stringify(db.trips)
+);
 
 localStorage.setItem(
 "adminPass",
@@ -497,15 +501,6 @@ onclick="deleteAccount(${i})">
 renderLists();
 renderTrips();
 
-if(!db.adminPass){
-
-showTab("setup");
-
-}else{
-
-showTab("login");
-
-}
 
 if(!db.adminPass){
 

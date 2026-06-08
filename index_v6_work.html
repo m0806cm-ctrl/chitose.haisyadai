@@ -295,6 +295,7 @@ db.trips.map(t=>`
 
 }renderLists();
 function saveDB(){
+
 localStorage.setItem(
 "families",
 JSON.stringify(db.families)
@@ -304,6 +305,12 @@ localStorage.setItem(
 "accounts",
 JSON.stringify(db.accounts)
 );
+
+localStorage.setItem(
+"trips",
+JSON.stringify(db.trips)
+);
+
 localStorage.setItem(
 "adminPass",
 db.adminPass
@@ -315,7 +322,6 @@ db.recoveryCode
 );
 
 }
-
 function showTab(id){
 
 document
@@ -359,10 +365,7 @@ alert("保存しました");
 showTab("login");
 
 }
-localStorage.setItem(
-"trips",
-JSON.stringify(db.trips)
-);
+
 function loginAdmin(){
 
 let p=
@@ -497,6 +500,16 @@ onclick="deleteAccount(${i})">
 
 renderLists();
 renderTrips();
+
+if(!db.adminPass){
+
+showTab("setup");
+
+}else{
+
+showTab("login");
+
+}
 </script>
 
 </body>

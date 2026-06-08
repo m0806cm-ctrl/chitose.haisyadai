@@ -242,17 +242,29 @@ localStorage.getItem("trips")||"[]"
 };
 function addTrip(){
 
+let name=
+document.getElementById("tripName").value;
+
+let date=
+document.getElementById("tripDate").value;
+
+let cost=
+Number(document.getElementById("tripCost").value);
+
+if(!name || !date || !cost){
+alert("遠征情報を入力してください");
+return;
+}
+
 let trip={
 
 id:Date.now(),
 
-name:document.getElementById("tripName").value,
+name:name,
 
-date:document.getElementById("tripDate").value,
+date:date,
 
-cost:Number(
-document.getElementById("tripCost").value
-),
+cost:cost,
 
 participants:db.families.map(f=>({
 name:f,
@@ -499,6 +511,7 @@ onclick="deleteAccount(${i})">
 }
 
 
+renderLists();
 renderTrips();
 
 

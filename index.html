@@ -188,7 +188,9 @@ border-radius:0;
 <input id="tripDate" type="date">
 
 <input id="tripCost" type="number" placeholder="総配車代">
-
+<input id="driverReward"
+type="number"
+placeholder="運転手報酬（1台）">
 <button class="primary" onclick="addTrip()">
 遠征作成
 </button>
@@ -250,7 +252,10 @@ document.getElementById("tripDate").value;
 
 let cost =
 Number(document.getElementById("tripCost").value);
-
+let driverReward =
+Number(
+document.getElementById("driverReward").value
+);
 if(!name || !date || !cost){
     alert("遠征情報を入力してください");
     return;
@@ -265,7 +270,7 @@ name:name,
 date:date,
 
 cost:cost,
-
+driverReward:driverReward,
 participants:db.families.map(f=>({
 name:f,
 people:1,

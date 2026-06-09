@@ -287,8 +287,157 @@ saveDB();
 renderTrips();
 
 }
+function editTrip(id){
 
-function renderTrips(){
+let trip =
+db.trips.find(t=>t.id===id);
+
+if(!trip)return;
+
+let html = "";
+
+trip.participants.forEach((p,i)=>{
+
+html += `
+${p.name}
+
+人数
+<input type="number"
+value="${p.people}"
+onchange="
+db.trips.find(t=>t.id===${id})
+.participants[${i}].people=
+Number(this.value);
+saveDB();
+">
+
+<label>
+
+<input type="checkbox"
+${p.isCar ? "checked":""}
+onchange="
+db.trips.find(t=>t.id===${id})
+.participants[${i}].isCar=
+this.checked;
+saveDB();
+">
+
+運転手
+
+</label>
+
+<hr>
+`;
+
+});
+
+html += `
+<button class="primary"
+onclick="calculateTrip(${id})">
+配車代計算
+</button>
+
+<div id="resultArea"></div>
+`;
+
+document.getElementById("tripList")
+.innerHTML = html;
+
+}
+function calculateTrip(id){
+
+let trip =
+db.trips.find(t=>t.id===id);
+
+if(!trip)return;
+
+let totalPeople = 0;
+let driverCount = 0;
+
+trip.participants.forEach(p=>{
+
+totalPeople += Number(p.people);
+
+if(p.isCar){
+driverCount++;
+}
+
+});
+
+if(totalPeople===0){
+alert("人数が0です");
+return;
+}
+
+let totalReward =
+driverCount * trip.driverReward;
+
+let totalAmount =
+trip.cost + totalReward;
+
+let share =
+Math.round(totalAmount / totalPeople);
+
+let html = `
+<h3>精算結果</h3>
+
+総人数:${totalPeople}人<br>
+運転手:${driverCount}台<br>
+総配車代:${trip.cost}円<br>
+運転手報酬総額:${totalReward}円<br>
+1人あたり:${share}円
+<hr>
+`;
+
+trip.participants.forEach(p=>{
+
+let burden =
+share * Number(p.people);
+
+let reward =
+p.isCar
+? trip.driverReward
+: 0;
+
+let diff =
+reward - burden;
+
+html += `
+<div class="card">
+
+<b>${p.name}</b><br>
+
+参加人数：
+${p.people}人<br>
+
+一人負担：
+${share}円<br>
+
+負担額：
+${burden}円<br>
+
+運転手報酬：
+${reward}円<br>
+
+<b>
+
+${diff>=0
+? "受取 "+diff+"円"
+: "支払 "+Math.abs(diff)+"円"}
+
+</b>
+
+</div>
+`;
+
+});
+
+document.getElementById(
+"resultArea"
+).innerHTML = html;
+
+}
+  function renderTrips(){
 
 let area=
 document.getElementById("tripList");
@@ -301,10 +450,16 @@ db.trips.map(t=>`
 <div class="card">
 
 <b>${t.name}</b><br>
-
 日付:${t.date}<br>
+総配車代:${t.cost}円<br>
+運転手報酬:${t.driverReward||0}円
 
-総配車代:${t.cost}円
+<hr>
+
+<button class="green"
+onclick="editTrip(${t.id})">
+参加者編集
+</button>
 
 </div>
 

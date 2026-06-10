@@ -3,243 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>千年ドルフィンズ女子 配車代管理 v6.1</title>
+<title>千年ドルフィンズ女子 配車代管理 v7.0</title>
 <style>
-body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8}
-header{background:#0b3d91;color:#fff;padding:15px;text-align:center;font-weight:bold;font-size:20px}
-.container{padding:10px;padding-bottom:80px}
-.card{background:#fff;padding:12px;margin-bottom:12px;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
-input{width:100%;padding:10px;margin:5px 0;border:1px solid #ccc;border-radius:8px;box-sizing:border-box}
-button{padding:10px;border:none;border-radius:8px;margin:3px;cursor:pointer}
-.primary{background:#0b3d91;color:#fff}.green{background:#2e7d32;color:#fff}.red{background:#c62828;color:#fff}
-.tab{display:none}.tab.active{display:block}
-.nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid #ccc}
-.nav button{flex:1;border-radius:0}
+body{font-family:Arial,sans-serif;margin:20px;background:#f4f6f8}
+.card{background:#fff;padding:15px;border-radius:10px}
+.green{color:green;font-weight:bold}
+.red{color:red;font-weight:bold}
+button{padding:10px}
 </style>
 </head>
 <body>
-
-<header>千年ドルフィンズ女子 配車代管理システム v6.1</header>
-
-<div class="container">
-
-<div id="setup" class="tab">
 <div class="card">
-<h3>初回設定</h3>
-<input id="adminPass1" type="password" placeholder="管理者パスワード">
-<input id="adminPass2" type="password" placeholder="確認">
-<button class="primary" onclick="saveFirstSetup()">保存</button>
-</div>
-</div>
+<h2>千年ドルフィンズ女子 配車代管理 v7.0</h2>
+<p>v7.0設計版</p>
 
-<div id="login" class="tab">
-<div class="card">
-<h3>ログイン</h3>
-<input id="loginPass" type="password" placeholder="パスワード">
-<button class="primary" onclick="loginAdmin()">管理者</button>
-<button class="green" onclick="showTab('account')">会計</button>
-</div>
-</div>
+<h3>C方式差額計算</h3>
 
-<div id="admin" class="tab">
-<div class="card">
-<h3>家庭マスタ</h3>
-<input id="familyName" placeholder="苗字">
-<button class="primary" onclick="addFamily()">追加</button>
-<div id="familyList"></div>
-</div>
-</div>
+負担額 <input id="charge" type="number"><br><br>
+配車代実費 <input id="cost" type="number"><br><br>
 
-<div id="account" class="tab">
-<div class="card">
-<h3>遠征作成</h3>
-<input id="tripName" placeholder="遠征名">
-<input id="tripDate" type="date">
-<input id="tripCost" type="number" placeholder="総配車代">
-<button class="primary" onclick="addTrip()">遠征作成</button>
-</div>
+<button onclick="calc()">計算</button>
 
-<div id="tripList"></div>
-<div id="resultArea"></div>
-</div>
+<div id="result"></div>
 
-</div>
+<hr>
 
-<div class="nav">
-<button onclick="showTab('login')">ログイン</button>
-<button onclick="showTab('admin')">管理</button>
-<button onclick="showTab('account')">会計</button>
+<button onclick="shareLine()">LINE共有</button>
 </div>
 
 <script>
-let db={
-adminPass:localStorage.getItem("adminPass")||"",
-families:JSON.parse(localStorage.getItem("families")||"[]"),
-trips:JSON.parse(localStorage.getItem("trips")||"[]")
-};
+function calc(){
+ const charge = Number(document.getElementById('charge').value||0);
+ const cost = Number(document.getElementById('cost').value||0);
 
-function saveDB(){
-localStorage.setItem("adminPass",db.adminPass);
-localStorage.setItem("families",JSON.stringify(db.families));
-localStorage.setItem("trips",JSON.stringify(db.trips));
+ const diff = cost - charge;
+
+ const result = document.getElementById('result');
+
+ if(diff >= 0){
+   result.innerHTML = '<p class="green">受取 ' + diff + '円</p>';
+ }else{
+   result.innerHTML = '<p class="red">支払 ' + Math.abs(diff) + '円</p>';
+ }
 }
 
-function showTab(id){
-document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-document.getElementById(id).classList.add("active");
+function shareLine(){
+ const text = document.getElementById('result').innerText || '精算結果';
+ window.open('https://line.me/R/msg/text/?' + encodeURIComponent(text));
 }
-
-function saveFirstSetup(){
-let p1=document.getElementById("adminPass1").value;
-let p2=document.getElementById("adminPass2").value;
-if(!p1){alert("パスワード入力");return;}
-if(p1!==p2){alert("確認不一致");return;}
-db.adminPass=p1;
-saveDB();
-alert("保存完了");
-showTab("login");
-}
-
-function loginAdmin(){
-let p=document.getElementById("loginPass").value;
-if(p===db.adminPass){showTab("admin");}
-else{alert("パスワードが違います");}
-}
-
-function addFamily(){
-let n=document.getElementById("familyName").value;
-if(!n)return;
-db.families.push(n);
-saveDB();
-renderLists();
-}
-
-function deleteFamily(i){
-db.families.splice(i,1);
-saveDB();
-renderLists();
-}
-
-function renderLists(){
-let fl=document.getElementById("familyList");
-fl.innerHTML=db.families.map((f,i)=>`
-<div>${f}
-<button class="red" onclick="deleteFamily(${i})">削除</button>
-</div>`).join("");
-}
-
-function addTrip(){
-let name=document.getElementById("tripName").value;
-let date=document.getElementById("tripDate").value;
-let cost=Number(document.getElementById("tripCost").value);
-
-if(!name||!date||!cost){
-alert("遠征情報を入力してください");
-return;
-}
-
-db.trips.push({
-id:Date.now(),
-name,date,cost,
-participants:db.families.map(f=>({
-name:f,people:1,isDriver:false,carCost:0,paid:false
-}))
-});
-
-saveDB();
-renderTrips();
-}
-
-function renderTrips(){
-let area=document.getElementById("tripList");
-area.innerHTML=db.trips.map(t=>`
-<div class="card">
-<b>${t.name}</b><br>
-日付:${t.date}<br>
-総配車代:${t.cost}円<br><hr>
-<button class="green" onclick="editTrip(${t.id})">参加者編集</button>
-<button class="red" onclick="deleteTrip(${t.id})">削除</button>
-</div>`).join("");
-}
-
-function editTrip(id){
-let trip=db.trips.find(t=>t.id===id);
-let area=document.getElementById("tripList");
-
-let html=`<div class="card"><h3>${trip.name}</h3>`;
-
-trip.participants.forEach((p,i)=>{
-html+=`
-${p.name}<br>
-人数<input type="number" value="${p.people}" onchange="updatePeople(${id},${i},this.value)">
-運転手<input type="checkbox" ${p.isDriver?'checked':''} onchange="updateDriver(${id},${i},this.checked)">
-配車代<input type="number" value="${p.carCost}" onchange="updateCost(${id},${i},this.value)">
-<hr>`;
-});
-
-html+=`<button class="primary" onclick="calculateTrip(${id})">配車代計算</button></div>`;
-area.innerHTML=html;
-}
-
-function updatePeople(id,i,v){
-db.trips.find(t=>t.id===id).participants[i].people=Number(v);
-saveDB();
-}
-function updateDriver(id,i,v){
-db.trips.find(t=>t.id===id).participants[i].isDriver=v;
-saveDB();
-}
-function updateCost(id,i,v){
-db.trips.find(t=>t.id===id).participants[i].carCost=Number(v);
-saveDB();
-}
-
-function calculateTrip(id){
-const trip=db.trips.find(t=>t.id===id);
-let total=0;
-
-trip.participants.forEach(p=>{
-let c=p.people-(p.isDriver?1:0);
-if(c<0)c=0;
-total+=c;
-});
-
-if(total===0){alert("負担人数0");return;}
-
-let unit=Math.ceil(trip.cost/total);
-let html=`<div class="card"><h3>精算結果</h3>1人負担:${unit}円</div>`;
-
-trip.participants.forEach(p=>{
-let c=p.people-(p.isDriver?1:0);
-if(c<0)c=0;
-
-let charge=c*unit;
-let diff=(p.carCost||0)-charge;
-
-html+=`<div class="card">
-<b>${p.name}</b><br>
-参加人数:${p.people}<br>
-負担額:${charge}円<br>
-配車代:${p.carCost}円<br>
-<b>${diff>=0?'受取 '+diff+'円':'支払 '+Math.abs(diff)+'円'}</b>
-</div>`;
-});
-
-document.getElementById("resultArea").innerHTML=html;
-}
-
-function deleteTrip(id){
-if(!confirm("削除しますか？")) return;
-db.trips=db.trips.filter(t=>t.id!==id);
-saveDB();
-renderTrips();
-}
-
-renderLists();
-renderTrips();
-
-if(!db.adminPass) showTab("setup");
-else showTab("login");
 </script>
 </body>
 </html>

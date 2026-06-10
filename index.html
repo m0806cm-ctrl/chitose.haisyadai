@@ -287,117 +287,36 @@ renderTrips();
 
 }
 function editTrip(id){
+  const trip = db.trips.find(t => t.id === id);
+  if(!trip) return;
 
-let trip =
-db.trips.find(t=>t.id===id);
+  const area = document.getElementById("tripList");
 
-if(!trip)return;
+  let html = `<div class="card"><h3>${trip.name}</h3>`;
 
-let html = `
+  trip.participants.forEach((p,i)=>{
+    html += `
+      <div>
+        ${p.name}<br>
 
-遠征名
+        人数
+        <input type="number" data-id="${id}" data-index="${i}" data-field="people" value="${p.people}">
 
-<input
-value="${trip.name}"
+        入金
+        <input type="checkbox" data-id="${id}" data-index="${i}" data-field="paid" ${p.paid ? "checked":""}>
+      </div>
+      <hr>
+    `;
+  });
 
+  html += `
+    <button class="primary" onclick="calculateTrip(${id})">
+      配車代計算
+    </button>
+  </div>`;
 
-<hr>
-`;
-`;
-let trip =
-db.trips.find(t=>t.id===id);
-
-if(!trip)return;
-
-let html = "";
-
-trip.participants.forEach((p,i)=>{
-
-html += `
-${p.name}
-
-人数
-<input type="number"
-value="${p.people}"
-onchange="
-db.trips.find(t=>t.id===${id})
-.participants[${i}].people=
-Number(this.value);
-saveDB();
-">
-
-<label>
-
-<input
-type="checkbox"
-
-${p.paid ? "checked":""}
-
-onchange="
-db.trips.find(t=>t.id===${id})
-.participants[${i}].paid=
-this.checked;
-saveDB();
-">
-
-入金済
-
-</label>
-
-<label>
-
-<input type="checkbox"
-${p.isDriver ? "checked":""}
-
-onchange="
-db.trips.find(t=>t.id===${id})
-.participants[${i}].isDriver=
-this.checked;
-saveDB();
-">
-
-運転手
-
-</label>
-
-<br>
-
-配車代
-
-<input
-type="number"
-value="${p.carCost||0}"
-
-onchange="
-db.trips.find(t=>t.id===${id})
-.participants[${i}].carCost=
-Number(this.value);
-saveDB();
-">
-onchange="
-db.trips.find(t=>t.id===${id})
-.participants[${i}].isCar=
-this.checked;
-saveDB();
-">
-
-運転手
-
-</label>
-
-<hr>
-`;
-
-});
-
-html += `
-<button class="primary"
-onclick="calculateTrip(${id})">
-配車代計算
-</button>
-
-<div id="resultArea"></div>
-`;
+  area.innerHTML = html;
+}
 
 document.getElementById(
 "resultArea"

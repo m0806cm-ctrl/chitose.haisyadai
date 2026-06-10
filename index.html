@@ -177,7 +177,11 @@ id="parking"
 type="number"
 value="0"
 placeholder="駐車場代">
-
+<input
+id="passengers"
+type="number"
+value="0"
+placeholder="乗車人数">
 <button
 class="green"
 onclick="addDriver()">
@@ -312,29 +316,15 @@ document.getElementById(
 ).value
 );
 
-if(!name)return;
-
-drivers.push({
-
-name:name,
-
-distance:distance,
-
-toll:toll,
-
-parking:parking,
-
-<input
-id="passengers"
-type="number"
-value="0"
-placeholder="乗車人数">
- let passengers=
+let passengers=
 Number(
 document.getElementById(
 "passengers"
 ).value
 );
+
+if(!name)return;
+
 drivers.push({
 
 name:name,
@@ -348,7 +338,7 @@ parking:parking,
 passengers:passengers
 
 });
-});
+
 saveData();
 
 renderDrivers();
@@ -368,10 +358,11 @@ ${d.name}
 
 距離:${d.distance}km
 
+乗車:${d.passengers}人
+
 高速:${d.toll}円
 
 駐車:${d.parking}円
-
 <button
 class="red"
 onclick="deleteDriver(${i})">

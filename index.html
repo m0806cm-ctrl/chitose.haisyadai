@@ -324,8 +324,30 @@ toll:toll,
 
 parking:parking,
 
-passengers:0
+<input
+id="passengers"
+type="number"
+value="0"
+placeholder="乗車人数">
+ let passengers=
+Number(
+document.getElementById(
+"passengers"
+).value
+);
+drivers.push({
 
+name:name,
+
+distance:distance,
+
+toll:toll,
+
+parking:parking,
+
+passengers:passengers
+
+});
 });
 saveData();
 
@@ -505,8 +527,9 @@ familyHtml+=`
 
 document.getElementById(
 "resultArea"
-).innerHTML=html;
-
+).innerHTML=
+detailHtml +
+familyHtml;
 saveData();
 
 }
@@ -718,9 +741,14 @@ drivers.forEach(d=>{
 
 html+=`
 
+html+=`
+
 <div class="card">
 
 <b>${d.name}</b><br>
+
+乗車人数：
+${d.passengers}人<br>
 
 実費：
 ${d.actualCost}円<br>

@@ -192,20 +192,44 @@ onclick="addDriver()">
 
 <button
 class="primary"
-onclick="calculate()">
+onclick="calculateSettlement()">
 精算計算
 </button>
 
 </div>
 
 <div id="resultArea"></div>
+<hr>
 
+<button
+class="green"
+onclick="shareLine()">
+LINE共有
+</button>
+
+<button
+class="red"
+onclick="clearAll()">
+全削除
+</button>
 </div>
 
 <script>
 
 let families=[];
+families=
+JSON.parse(
+localStorage.getItem(
+"families"
+)||"[]"
+);
 
+drivers=
+JSON.parse(
+localStorage.getItem(
+"drivers"
+)||"[]"
+);
 let drivers=[];
 
 function addFamily(){
@@ -228,7 +252,9 @@ families.push({
 
 name:name,
 
-people:people
+people:people,
+
+paid:false
 
 });
 
@@ -491,6 +517,254 @@ detailHtml+
 familyHtml;
 
 }
+function saveData(){
+
+localStorage.setItem(
+"families",
+JSON.stringify(families)
+);
+
+localStorage.setItem(
+"drivers",
+JSON.stringify(drivers)
+);
+
+}
+
+function loadData(){
+
+families=
+JSON.parse(
+localStorage.getItem(
+"families"
+)||"[]"
+);
+
+drivers=
+JSON.parse(
+localStorage.getItem(
+"drivers"
+)||"[]"
+);
+
+renderFamilies();
+
+renderDrivers();
+
+}
+
+function shareLine(){
+
+let text=
+document.getElementById(
+"resultArea"
+).innerText;
+
+window.open(
+"https://line.me/R/msg/text/?"+
+encodeURIComponent(text)
+);
+}
+
+function clearAll(){
+
+if(
+!confirm(
+"全データ削除しますか？"
+)
+){
+return;
+}
+
+families=[];
+
+drivers=[];
+
+saveData();
+
+renderFamilies();
+
+renderDrivers();
+
+document.getElementById(
+"resultArea"
+).innerHTML="";
+
+}
+function calculateSettlement(){
+
+let gasPrice=
+Number(
+document.getElementById(
+"gasPrice"
+).value
+);
+
+let fuelRate=
+Number(
+document.getElementById(
+"fuelRate"
+).value
+);
+
+let bonus=
+Number(
+document.getElementById(
+"driverBonus"
+).value
+);
+
+let totalCost=0;
+
+drivers.forEach(d=>{
+
+let gasCost=
+Math.round(
+(d.distance/fuelRate)
+*gasPrice
+);
+
+d.actualCost=
+gasCost+
+d.toll+
+d.parking+
+bonus;
+
+totalCost+=d.actualCost;
+
+});
+
+let totalPeople=0;
+
+families.forEach(f=>{
+
+totalPeople+=
+Number(f.people);
+
+});
+
+if(totalPeople===0){
+
+alert("家庭未登録");
+
+return;
+
+}
+
+let unitPrice=
+Math.ceil(
+totalCost/
+totalPeople
+);
+
+let html=`
+
+<h3>精算結果</h3>
+
+総実費：
+${totalCost}円<br>
+
+総人数：
+${totalPeople}人<br>
+
+1人負担：
+${unitPrice}円
+
+<hr>
+
+`;
+
+families.forEach(f=>{
+
+f.burden=
+unitPrice*
+Number(f.people);
+
+html+=`
+
+<div class="card">
+
+<b>${f.name}</b><br>
+
+人数：
+${f.people}人<br>
+
+負担額：
+${f.burden}円<br>
+
+<label>
+
+<input
+type="checkbox"
+${f.paid?"checked":""}
+onclick="togglePaid(${families.indexOf(f)})">
+
+入金済
+
+</label>
+
+<br>
+
+${f.paid
+? '<span class="resultPlus">入金済</span>'
+: '<span class="resultMinus">未入金</span>'
+}
+
+</div>
+
+`;
+
+});
+
+html+=`
+<hr>
+<h3>運転手受取額</h3>
+`;
+
+drivers.forEach(d=>{
+
+html+=`
+
+<div class="card">
+
+<b>${d.name}</b><br>
+
+実費：
+${d.actualCost}円<br>
+
+<span class="resultPlus">
+
+受取：
+${d.actualCost}円
+
+</span>
+
+</div>
+
+`;
+
+});
+
+document.getElementById(
+"resultArea"
+).innerHTML=html;
+
+}
+function togglePaid(i){
+
+families[i].paid=
+!families[i].paid;
+
+saveData();
+
+calculateSettlement();
+
+}
+ window.onload=function(){
+
+loadData();
+
+};
  </script>
 
 </body>

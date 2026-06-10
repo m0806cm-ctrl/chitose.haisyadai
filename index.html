@@ -3,54 +3,90 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>千年ドルフィンズ女子 配車代管理 v7.0</title>
+<title>千年ドルフィンズ女子 配車代管理 v8.0</title>
 <style>
-body{font-family:Arial,sans-serif;margin:20px;background:#f4f6f8}
-.card{background:#fff;padding:15px;border-radius:10px}
+body{font-family:Arial,sans-serif;background:#f4f6f8;padding:20px}
+.card{background:#fff;padding:15px;border-radius:10px;margin-bottom:15px}
+input{width:100%;padding:8px;margin:5px 0}
+button{padding:10px;margin-top:10px}
 .green{color:green;font-weight:bold}
 .red{color:red;font-weight:bold}
-button{padding:10px}
 </style>
 </head>
 <body>
+
 <div class="card">
-<h2>千年ドルフィンズ女子 配車代管理 v7.0</h2>
-<p>v7.0設計版</p>
+<h2>配車代管理 v8.0</h2>
 
-<h3>C方式差額計算</h3>
+<h3>設定</h3>
+ガソリン単価(円/L)<input id="gasPrice" type="number" value="180">
+燃費(km/L)<input id="fuelRate" type="number" value="12">
+運転手手当(円)<input id="driverBonus" type="number" value="1000">
+</div>
 
-負担額 <input id="charge" type="number"><br><br>
-配車代実費 <input id="cost" type="number"><br><br>
+<div class="card">
+<h3>運転手情報</h3>
+往復距離(km)<input id="distance" type="number">
+高速代(円)<input id="toll" type="number" value="0">
+駐車場代(円)<input id="parking" type="number" value="0">
 
-<button onclick="calc()">計算</button>
+<h3>家庭負担額</h3>
+負担額(円)<input id="charge" type="number">
+
+<button onclick="calc()">精算計算</button>
 
 <div id="result"></div>
-
-<hr>
 
 <button onclick="shareLine()">LINE共有</button>
 </div>
 
 <script>
 function calc(){
+
+ const gasPrice = Number(document.getElementById('gasPrice').value||0);
+ const fuelRate = Number(document.getElementById('fuelRate').value||1);
+ const bonus = Number(document.getElementById('driverBonus').value||0);
+
+ const distance = Number(document.getElementById('distance').value||0);
+ const toll = Number(document.getElementById('toll').value||0);
+ const parking = Number(document.getElementById('parking').value||0);
+
  const charge = Number(document.getElementById('charge').value||0);
- const cost = Number(document.getElementById('cost').value||0);
 
- const diff = cost - charge;
+ const gasCost = Math.round((distance / fuelRate) * gasPrice);
 
- const result = document.getElementById('result');
+ const actualCost =
+ gasCost +
+ toll +
+ parking +
+ bonus;
+
+ const diff = actualCost - charge;
+
+ let result = `
+ ガソリン代:${gasCost}円<br>
+ 高速代:${toll}円<br>
+ 駐車場代:${parking}円<br>
+ 手当:${bonus}円<br>
+ <hr>
+ 実費合計:${actualCost}円<br>
+ 負担額:${charge}円<br><br>
+ `;
 
  if(diff >= 0){
-   result.innerHTML = '<p class="green">受取 ' + diff + '円</p>';
+   result += `<span class="green">受取 ${diff}円</span>`;
  }else{
-   result.innerHTML = '<p class="red">支払 ' + Math.abs(diff) + '円</p>';
+   result += `<span class="red">支払 ${Math.abs(diff)}円</span>`;
  }
+
+ document.getElementById('result').innerHTML = result;
 }
 
 function shareLine(){
- const text = document.getElementById('result').innerText || '精算結果';
+ const text = document.getElementById('result').innerText;
  window.open('https://line.me/R/msg/text/?' + encodeURIComponent(text));
 }
 </script>
+
 </body>
 </html>

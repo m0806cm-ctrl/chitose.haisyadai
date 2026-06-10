@@ -193,7 +193,6 @@ onclick="addDriver()">
 <button
 class="primary"
 onclick="calculateSettlement()">
- saveData();
 精算計算
 </button>
 
@@ -323,10 +322,11 @@ distance:distance,
 
 toll:toll,
 
-parking:parking
+parking:parking,
+
+passengers:0
 
 });
-
 saveData();
 
 renderDrivers();
@@ -505,10 +505,9 @@ familyHtml+=`
 
 document.getElementById(
 "resultArea"
-).innerHTML=
+).innerHTML=html;
 
-detailHtml+
-familyHtml;
+saveData();
 
 }
 function saveData(){

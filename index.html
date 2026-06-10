@@ -3,90 +3,495 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>千年ドルフィンズ女子 配車代管理 v8.0</title>
+<title>千年ドルフィンズ女子 配車代管理 v9.0</title>
+
 <style>
-body{font-family:Arial,sans-serif;background:#f4f6f8;padding:20px}
-.card{background:#fff;padding:15px;border-radius:10px;margin-bottom:15px}
-input{width:100%;padding:8px;margin:5px 0}
-button{padding:10px;margin-top:10px}
-.green{color:green;font-weight:bold}
-.red{color:red;font-weight:bold}
+
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:#f4f6f8;
+}
+
+header{
+background:#0b3d91;
+color:white;
+padding:15px;
+text-align:center;
+font-size:22px;
+font-weight:bold;
+}
+
+.container{
+padding:15px;
+padding-bottom:100px;
+}
+
+.card{
+background:white;
+padding:15px;
+margin-bottom:15px;
+border-radius:10px;
+box-shadow:0 2px 5px rgba(0,0,0,.1);
+}
+
+input{
+width:100%;
+padding:10px;
+margin:5px 0;
+box-sizing:border-box;
+border:1px solid #ccc;
+border-radius:8px;
+}
+
+button{
+padding:10px;
+border:none;
+border-radius:8px;
+margin:3px;
+cursor:pointer;
+}
+
+.primary{
+background:#0b3d91;
+color:white;
+}
+
+.green{
+background:#2e7d32;
+color:white;
+}
+
+.red{
+background:#c62828;
+color:white;
+}
+
+.resultPlus{
+color:green;
+font-weight:bold;
+}
+
+.resultMinus{
+color:red;
+font-weight:bold;
+}
+
 </style>
 </head>
+
 <body>
 
-<div class="card">
-<h2>配車代管理 v8.0</h2>
+<header>
+千年ドルフィンズ女子
+配車代管理システム v9.0
+</header>
 
-<h3>設定</h3>
-ガソリン単価(円/L)<input id="gasPrice" type="number" value="180">
-燃費(km/L)<input id="fuelRate" type="number" value="12">
-運転手手当(円)<input id="driverBonus" type="number" value="1000">
+<div class="container">
+
+<div class="card">
+
+<h3>遠征情報</h3>
+
+<input
+id="tripName"
+placeholder="遠征名">
+
+<input
+id="tripDate"
+type="date">
+
 </div>
 
 <div class="card">
-<h3>運転手情報</h3>
-往復距離(km)<input id="distance" type="number">
-高速代(円)<input id="toll" type="number" value="0">
-駐車場代(円)<input id="parking" type="number" value="0">
 
-<h3>家庭負担額</h3>
-負担額(円)<input id="charge" type="number">
+<h3>設定</h3>
 
-<button onclick="calc()">精算計算</button>
+ガソリン単価(円/L)
 
-<div id="result"></div>
+<input
+id="gasPrice"
+type="number"
+value="180">
 
-<button onclick="shareLine()">LINE共有</button>
+燃費(km/L)
+
+<input
+id="fuelRate"
+type="number"
+value="12">
+
+運転手手当(円)
+
+<input
+id="driverBonus"
+type="number"
+value="1000">
+
+</div>
+<div class="card">
+
+<h3>家庭登録</h3>
+
+<input
+id="familyName"
+placeholder="家庭名">
+
+<input
+id="familyPeople"
+type="number"
+value="1"
+placeholder="参加人数">
+
+<button
+class="primary"
+onclick="addFamily()">
+家庭追加
+</button>
+
+<div id="familyList"></div>
+
+</div>
+
+<div class="card">
+
+<h3>配車車両登録</h3>
+
+<input
+id="driverName"
+placeholder="車名・運転手名">
+
+<input
+id="distance"
+type="number"
+placeholder="往復距離(km)">
+
+<input
+id="toll"
+type="number"
+value="0"
+placeholder="高速代">
+
+<input
+id="parking"
+type="number"
+value="0"
+placeholder="駐車場代">
+
+<button
+class="green"
+onclick="addDriver()">
+車両追加
+</button>
+
+<div id="driverList"></div>
+
+</div>
+
+<div class="card">
+
+<button
+class="primary"
+onclick="calculate()">
+精算計算
+</button>
+
+</div>
+
+<div id="resultArea"></div>
+
 </div>
 
 <script>
-function calc(){
 
- const gasPrice = Number(document.getElementById('gasPrice').value||0);
- const fuelRate = Number(document.getElementById('fuelRate').value||1);
- const bonus = Number(document.getElementById('driverBonus').value||0);
+let families=[];
 
- const distance = Number(document.getElementById('distance').value||0);
- const toll = Number(document.getElementById('toll').value||0);
- const parking = Number(document.getElementById('parking').value||0);
+let drivers=[];
 
- const charge = Number(document.getElementById('charge').value||0);
+function addFamily(){
 
- const gasCost = Math.round((distance / fuelRate) * gasPrice);
+let name=
+document.getElementById(
+"familyName"
+).value;
 
- const actualCost =
- gasCost +
- toll +
- parking +
- bonus;
+let people=
+Number(
+document.getElementById(
+"familyPeople"
+).value
+);
 
- const diff = actualCost - charge;
+if(!name)return;
 
- let result = `
- ガソリン代:${gasCost}円<br>
- 高速代:${toll}円<br>
- 駐車場代:${parking}円<br>
- 手当:${bonus}円<br>
- <hr>
- 実費合計:${actualCost}円<br>
- 負担額:${charge}円<br><br>
- `;
+families.push({
 
- if(diff >= 0){
-   result += `<span class="green">受取 ${diff}円</span>`;
- }else{
-   result += `<span class="red">支払 ${Math.abs(diff)}円</span>`;
- }
+name:name,
 
- document.getElementById('result').innerHTML = result;
+people:people
+
+});
+
+renderFamilies();
+
 }
 
-function shareLine(){
- const text = document.getElementById('result').innerText;
- window.open('https://line.me/R/msg/text/?' + encodeURIComponent(text));
+function renderFamilies(){
+
+document.getElementById(
+"familyList"
+).innerHTML=
+
+families.map((f,i)=>`
+
+<div>
+
+${f.name}
+（${f.people}人）
+
+<button
+class="red"
+onclick="deleteFamily(${i})">
+削除
+</button>
+
+</div>
+
+`).join("");
+
 }
-</script>
+
+function deleteFamily(i){
+
+families.splice(i,1);
+
+renderFamilies();
+
+}
+
+function addDriver(){
+
+let name=
+document.getElementById(
+"driverName"
+).value;
+
+let distance=
+Number(
+document.getElementById(
+"distance"
+).value
+);
+
+let toll=
+Number(
+document.getElementById(
+"toll"
+).value
+);
+
+let parking=
+Number(
+document.getElementById(
+"parking"
+).value
+);
+
+if(!name)return;
+
+drivers.push({
+
+name:name,
+
+distance:distance,
+
+toll:toll,
+
+parking:parking
+
+});
+
+renderDrivers();
+
+}
+ function renderDrivers(){
+
+document.getElementById(
+"driverList"
+).innerHTML=
+
+drivers.map((d,i)=>`
+
+<div>
+
+${d.name}
+
+距離:${d.distance}km
+
+高速:${d.toll}円
+
+駐車:${d.parking}円
+
+<button
+class="red"
+onclick="deleteDriver(${i})">
+削除
+</button>
+
+</div>
+
+`).join("");
+
+}
+
+function deleteDriver(i){
+
+drivers.splice(i,1);
+
+renderDrivers();
+
+}
+
+function calculate(){
+
+let gasPrice=
+Number(
+document.getElementById(
+"gasPrice"
+).value
+);
+
+let fuelRate=
+Number(
+document.getElementById(
+"fuelRate"
+).value
+);
+
+let bonus=
+Number(
+document.getElementById(
+"driverBonus"
+).value
+);
+
+let totalCost=0;
+
+let detailHtml=`
+<h3>車両別実費</h3>
+`;
+
+drivers.forEach(d=>{
+
+let gasCost=
+Math.round(
+(d.distance/fuelRate)
+*gasPrice
+);
+
+let actual=
+
+gasCost+
+d.toll+
+d.parking+
+bonus;
+
+d.actualCost=
+actual;
+
+totalCost+=actual;
+
+detailHtml+=`
+
+<div class="card">
+
+<b>${d.name}</b><br>
+
+距離:${d.distance}km<br>
+
+ガソリン代:${gasCost}円<br>
+
+高速代:${d.toll}円<br>
+
+駐車場代:${d.parking}円<br>
+
+手当:${bonus}円<br>
+
+実費合計:${actual}円
+
+</div>
+
+`;
+
+});
+
+let totalPeople=0;
+
+families.forEach(f=>{
+
+totalPeople+=
+Number(f.people);
+
+});
+
+if(totalPeople===0){
+
+alert("家庭を登録してください");
+
+return;
+
+}
+
+let unitPrice=
+Math.ceil(
+totalCost/
+totalPeople
+);
+
+let familyHtml=`
+<h3>家庭別負担額</h3>
+
+総実費:${totalCost}円<br>
+
+総人数:${totalPeople}人<br>
+
+1人負担:${unitPrice}円
+
+<hr>
+`;
+
+families.forEach(f=>{
+
+let burden=
+
+unitPrice*
+Number(f.people);
+
+familyHtml+=`
+
+<div class="card">
+
+<b>${f.name}</b><br>
+
+人数:${f.people}人<br>
+
+負担額:${burden}円
+
+</div>
+
+`;
+
+});
+
+document.getElementById(
+"resultArea"
+).innerHTML=
+
+detailHtml+
+familyHtml;
+
+}
+ </script>
 
 </body>
 </html>

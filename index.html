@@ -4,55 +4,146 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>千年ドルフィンズ女子 配車代管理システム</title>
+
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:sans-serif;background:#f4f6f8;color:#222}
-header{background:#0b3d91;color:#fff;padding:14px;text-align:center;font-size:20px;font-weight:bold;position:sticky;top:0;z-index:10}
-.container{padding:12px;padding-bottom:120px}
-.card{background:#fff;border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
-h3{margin:0 0 10px}
-input,select,textarea{
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+body{
+background:#f4f6f8;
+padding-bottom:100px;
+}
+
+header{
+background:#0b3d91;
+color:#fff;
+padding:15px;
+text-align:center;
+font-size:22px;
+font-weight:bold;
+position:sticky;
+top:0;
+z-index:10;
+}
+
+.container{
+padding:12px;
+max-width:900px;
+margin:auto;
+}
+
+.card{
+background:#fff;
+padding:15px;
+margin-bottom:12px;
+border-radius:12px;
+box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+h2,h3{
+margin-bottom:10px;
+}
+
+input,select{
 width:100%;
 padding:10px;
-margin:4px 0 10px;
+margin-top:5px;
+margin-bottom:10px;
 border:1px solid #ccc;
 border-radius:8px;
+font-size:16px;
 }
+
 button{
 border:none;
 border-radius:8px;
-padding:10px 12px;
-margin:3px;
+padding:10px 14px;
 cursor:pointer;
+margin:3px;
+font-size:15px;
 }
-.primary{background:#0b3d91;color:#fff}
-.green{background:#2e7d32;color:#fff}
-.red{background:#c62828;color:#fff}
-.orange{background:#ef6c00;color:#fff}
-.gray{background:#607d8b;color:#fff}
-.flex{display:flex;gap:6px;flex-wrap:wrap}
-.badge{padding:4px 8px;border-radius:999px;color:#fff;font-size:12px}
-.ok{background:#2e7d32}
-.ng{background:#c62828}
-.small{font-size:12px;color:#666}
+
+.primary{
+background:#0b3d91;
+color:#fff;
+}
+
+.green{
+background:#2e7d32;
+color:#fff;
+}
+
+.red{
+background:#c62828;
+color:#fff;
+}
+
+.orange{
+background:#ef6c00;
+color:#fff;
+}
+
+.gray{
+background:#666;
+color:#fff;
+}
+
+.familyRow{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:8px 0;
+border-bottom:1px solid #eee;
+}
+
+.resultPlus{
+color:#2e7d32;
+font-weight:bold;
+}
+
+.resultMinus{
+color:#c62828;
+font-weight:bold;
+}
+
+.hidden{
+display:none;
+}
+
+.badge{
+display:inline-block;
+padding:4px 8px;
+border-radius:6px;
+background:#e8f0ff;
+margin-left:5px;
+font-size:12px;
+}
+
 .progress{
 height:20px;
 background:#ddd;
-border-radius:999px;
+border-radius:20px;
 overflow:hidden;
+margin-top:5px;
 }
-.progress-bar{
+
+.progressBar{
 height:100%;
 background:#2e7d32;
 text-align:center;
 color:#fff;
 font-size:12px;
-line-height:20px;
 }
-.hidden{display:none}
-@media(max-width:768px){
-button{width:100%}
-.flex button{width:auto}
+
+@media(max-width:600px){
+button{
+width:100%;
+margin-top:5px;
+}
 }
 </style>
 </head>
@@ -65,106 +156,125 @@ button{width:100%}
 <div class="container">
 
 <div id="setupCard" class="card hidden">
-<h3>初回管理者設定</h3>
-<input id="setupAdminName" placeholder="管理者名">
-<input id="setupAdminPass" type="password" placeholder="管理者パスワード">
-<button class="primary" onclick="createAdmin()">管理者作成</button>
+<h2>初回管理者設定</h2>
+<input id="adminPass" type="password" placeholder="管理者パスワード">
+<button class="primary" onclick="saveAdmin()">管理者登録</button>
 </div>
 
 <div id="loginCard" class="card hidden">
-<h3>ログイン</h3>
+<h2>ログイン</h2>
 <select id="loginRole">
 <option value="admin">管理者</option>
 <option value="account">会計</option>
 </select>
-<input id="loginName" placeholder="ユーザー名">
+
 <input id="loginPass" type="password" placeholder="パスワード">
+
 <button class="primary" onclick="login()">ログイン</button>
 </div>
 
-<div id="appArea" class="hidden">
+<div id="mainArea" class="hidden">
 
 <div class="card">
-<h3>ログイン情報</h3>
-<div id="userInfo"></div>
+<h2>ユーザー情報</h2>
+<div id="roleInfo"></div>
 <button class="red" onclick="logout()">ログアウト</button>
 </div>
 
-<div class="card" id="accountCard">
-<h3>会計アカウント管理</h3>
+<div id="adminArea" class="hidden">
+
+<div class="card">
+<h2>会計アカウント管理</h2>
+
 <input id="accountName" placeholder="会計名">
-<input id="accountPass" type="password" placeholder="パスワード">
-<button class="green" onclick="addAccount()">会計追加</button>
+
+<input id="accountPass" placeholder="パスワード">
+
+<button class="green" onclick="addAccount()">
+会計追加
+</button>
+
 <div id="accountList"></div>
 </div>
 
 <div class="card">
-<h3>遠征情報</h3>
-<input id="tripName" placeholder="遠征名">
-<input id="tripDate" type="date">
-<button class="orange" onclick="saveTripHistory()">遠征保存</button>
+<h2>家庭マスタ管理</h2>
+
+<input id="familyMasterName" placeholder="家庭名">
+
+<button class="green" onclick="addFamilyMaster()">
+家庭追加
+</button>
+
+<div id="familyMasterList"></div>
 </div>
 
 <div class="card">
-<h3>設定</h3>
-<label>ガソリン単価(円/L)</label>
+<h2>CSVバックアップ</h2>
+
+<button class="green" onclick="exportCSV()">
+CSV出力
+</button>
+
+<input type="file" id="csvImport" accept=".csv">
+
+<button class="orange" onclick="importCSV()">
+CSV復元
+</button>
+
+</div>
+
+</div>
+
+<div class="card">
+<h2>大会入力</h2>
+
+<input id="tripName" placeholder="大会名">
+
+<input id="tripDate" type="date">
+
+<label>ガソリン単価</label>
 <input id="gasPrice" type="number" value="180">
+
 <label>燃費(km/L)</label>
 <input id="fuelRate" type="number" value="12">
-<label>運転手手当(円)</label>
-<input id="driverBonus" type="number" value="1000">
+
+<label>往復距離(km)</label>
+<input id="distance" type="number">
+
+<label>配車台数</label>
+<input id="carCount" type="number" value="1">
+
+<button class="primary" onclick="generateFamilies()">
+参加家庭作成
+</button>
+
 </div>
 
 <div class="card">
-<h3>家庭登録</h3>
-<input id="familyName" placeholder="家庭名">
-<input id="familyPeople" type="number" value="1">
-<button class="primary" onclick="addFamily()">家庭追加</button>
-<div id="familyList"></div>
+<h2>参加家庭設定</h2>
+
+<div id="tripFamilies"></div>
+
 </div>
 
 <div class="card">
-<h3>配車車両登録</h3>
-<input id="driverName" placeholder="車名・運転手名">
-<input id="distance" type="number" placeholder="往復距離(km)">
-<input id="toll" type="number" value="0" placeholder="高速代">
-<input id="parking" type="number" value="0" placeholder="駐車場代">
-<input id="passengers" type="number" value="0" placeholder="乗車人数">
-<button class="green" onclick="addDriver()">車両追加</button>
-<div id="driverList"></div>
-</div>
-
-<div class="card">
-<button class="primary" onclick="calculateSettlement()">配車代自動計算</button>
-</div>
-
-<div class="card">
-<h3>集金率</h3>
-<div class="progress">
-<div id="collectionBar" class="progress-bar" style="width:0%">0%</div>
-</div>
+<button class="green" onclick="calculate()">
+精算計算
+</button>
 </div>
 
 <div id="resultArea"></div>
 
 <div class="card">
-<h3>遠征履歴</h3>
+<h2>遠征履歴</h2>
 <div id="historyList"></div>
 </div>
 
 <div class="card">
-<h3>JSONバックアップ・復元</h3>
-<div class="flex">
-<button class="green" onclick="backupJSON()">JSONバックアップ</button>
-<input type="file" id="restoreFile" accept=".json" onchange="restoreJSON(event)">
-</div>
-</div>
-
-<div class="card">
-<div class="flex">
-<button class="green" onclick="shareLine()">LINE共有</button>
-<button class="red" onclick="clearAll()">全削除</button>
-</div>
+<button class="green" onclick="shareLine()">
+LINE共有
+</button>
 </div>
 
 </div>
@@ -173,383 +283,559 @@ button{width:100%}
 
 <script>
 
-let users=JSON.parse(localStorage.getItem("users")||"[]");
-let currentUser=JSON.parse(localStorage.getItem("currentUser")||"null");
-let families=JSON.parse(localStorage.getItem("families")||"[]");
-let drivers=JSON.parse(localStorage.getItem("drivers")||"[]");
-let histories=JSON.parse(localStorage.getItem("histories")||"[]");
+let role=null;
+
+let familyMaster=
+JSON.parse(localStorage.getItem("familyMaster")||"[]");
+
+let accounts=
+JSON.parse(localStorage.getItem("accounts")||"[]");
+
+let histories=
+JSON.parse(localStorage.getItem("histories")||"[]");
+
+let tripFamilies=[];
 
 function saveAll(){
-localStorage.setItem("users",JSON.stringify(users));
-localStorage.setItem("currentUser",JSON.stringify(currentUser));
-localStorage.setItem("families",JSON.stringify(families));
-localStorage.setItem("drivers",JSON.stringify(drivers));
+localStorage.setItem("familyMaster",JSON.stringify(familyMaster));
+localStorage.setItem("accounts",JSON.stringify(accounts));
 localStorage.setItem("histories",JSON.stringify(histories));
 }
 
 function init(){
-if(users.length===0){
+
+if(!localStorage.getItem("adminPassword")){
 document.getElementById("setupCard").classList.remove("hidden");
-}else if(!currentUser){
-document.getElementById("loginCard").classList.remove("hidden");
 }else{
-openApp();
-}
+document.getElementById("loginCard").classList.remove("hidden");
 }
 
-function createAdmin(){
-const name=document.getElementById("setupAdminName").value.trim();
-const pass=document.getElementById("setupAdminPass").value.trim();
-if(!name||!pass)return;
-users.push({role:"admin",name,pass});
-saveAll();
+renderFamilyMaster();
+renderAccounts();
+renderHistory();
+
+}
+
+function saveAdmin(){
+
+let pass=
+document.getElementById("adminPass").value;
+
+if(!pass)return;
+
+localStorage.setItem("adminPassword",pass);
+
+alert("管理者作成完了");
+
 location.reload();
+
 }
 
 function login(){
-const role=document.getElementById("loginRole").value;
-const name=document.getElementById("loginName").value.trim();
-const pass=document.getElementById("loginPass").value.trim();
 
-const user=users.find(x=>x.role===role&&x.name===name&&x.pass===pass);
-if(!user){
-alert("ログイン失敗");
+let pass=
+document.getElementById("loginPass").value;
+
+let type=
+document.getElementById("loginRole").value;
+
+if(type==="admin"){
+
+if(pass!==localStorage.getItem("adminPassword")){
+alert("パスワード違い");
 return;
 }
 
-currentUser=user;
-saveAll();
-openApp();
+role="admin";
+
+}else{
+
+let acc=
+accounts.find(a=>a.pass===pass);
+
+if(!acc){
+alert("パスワード違い");
+return;
+}
+
+role="account";
+
+}
+
+document.getElementById("loginCard").classList.add("hidden");
+document.getElementById("mainArea").classList.remove("hidden");
+
+if(role==="admin"){
+document.getElementById("adminArea").classList.remove("hidden");
+}
+
+document.getElementById("roleInfo").innerHTML=
+"権限 : "+role;
+
 }
 
 function logout(){
-currentUser=null;
-saveAll();
 location.reload();
 }
 
-function openApp(){
-document.getElementById("appArea").classList.remove("hidden");
-document.getElementById("userInfo").innerHTML=
-`<b>${currentUser.name}</b> (${currentUser.role})`;
-
-if(currentUser.role!=="admin"){
-document.getElementById("accountCard").style.display="none";
-}
-
-renderFamilies();
-renderDrivers();
-renderAccounts();
-renderHistory();
-updateCollectionRate();
-}
-
 function addAccount(){
-if(currentUser.role!=="admin")return;
-const name=document.getElementById("accountName").value.trim();
-const pass=document.getElementById("accountPass").value.trim();
+
+let name=
+document.getElementById("accountName").value;
+
+let pass=
+document.getElementById("accountPass").value;
+
 if(!name||!pass)return;
-users.push({role:"account",name,pass});
+
+accounts.push({
+name:name,
+pass:pass
+});
+
 saveAll();
+
 renderAccounts();
+
 }
 
 function renderAccounts(){
-const area=document.getElementById("accountList");
-area.innerHTML=users
-.filter(x=>x.role==="account")
-.map((u,i)=>`
-<div class="card">
-${u.name}
-<button class="red" onclick="deleteAccount('${u.name}')">削除</button>
-</div>
-`).join("");
-}
 
-function deleteAccount(name){
-users=users.filter(x=>!(x.role==="account"&&x.name===name));
-saveAll();
-renderAccounts();
-}
+let html="";
 
-function addFamily(){
-const name=document.getElementById("familyName").value.trim();
-const people=Number(document.getElementById("familyPeople").value);
-if(!name)return;
+accounts.forEach((a,i)=>{
 
-families.push({
-name,
-people,
-paid:false,
-burden:0
-});
-
-saveAll();
-renderFamilies();
-}
-
-function renderFamilies(){
-document.getElementById("familyList").innerHTML=
-families.map((f,i)=>`
-<div class="card">
-<b>${f.name}</b><br>
-人数:${f.people}人<br>
-${f.paid?'<span class="badge ok">入金済</span>':'<span class="badge ng">未入金</span>'}
-<br>
-<button class="red" onclick="deleteFamily(${i})">削除</button>
-</div>
-`).join("");
-}
-
-function deleteFamily(i){
-families.splice(i,1);
-saveAll();
-renderFamilies();
-}
-
-function addDriver(){
-
-const name=document.getElementById("driverName").value.trim();
-const distance=Number(document.getElementById("distance").value);
-const toll=Number(document.getElementById("toll").value);
-const parking=Number(document.getElementById("parking").value);
-const passengers=Number(document.getElementById("passengers").value);
-
-if(!name)return;
-
-drivers.push({
-name,
-distance,
-toll,
-parking,
-passengers
-});
-
-saveAll();
-renderDrivers();
-}
-
-function renderDrivers(){
-document.getElementById("driverList").innerHTML=
-drivers.map((d,i)=>`
-<div class="card">
-<b>${d.name}</b><br>
-距離:${d.distance}km<br>
-乗車:${d.passengers}人<br>
-高速:${d.toll}円<br>
-駐車:${d.parking}円<br>
-<button class="red" onclick="deleteDriver(${i})">削除</button>
-</div>
-`).join("");
-}
-
-function deleteDriver(i){
-drivers.splice(i,1);
-saveAll();
-renderDrivers();
-}
-
-function calculateSettlement(){
-
-const gasPrice=Number(document.getElementById("gasPrice").value);
-const fuelRate=Number(document.getElementById("fuelRate").value);
-const bonus=Number(document.getElementById("driverBonus").value);
-
-let totalCost=0;
-
-drivers.forEach(d=>{
-const gas=Math.round((d.distance/fuelRate)*gasPrice);
-d.actualCost=gas+d.toll+d.parking+bonus;
-totalCost+=d.actualCost;
-});
-
-let totalPeople=0;
-families.forEach(f=>totalPeople+=Number(f.people));
-
-if(totalPeople===0){
-alert("家庭未登録");
-return;
-}
-
-const unit=Math.ceil(totalCost/totalPeople);
-
-let html=`
-<div class="card">
-<h3>精算結果</h3>
-総実費:${totalCost}円<br>
-総人数:${totalPeople}人<br>
-1人負担:${unit}円
+html+=`
+<div class="familyRow">
+${a.name}
+<button class="red"
+onclick="deleteAccount(${i})">
+削除
+</button>
 </div>
 `;
 
-families.forEach((f,i)=>{
-f.burden=unit*f.people;
+});
+
+document.getElementById("accountList").innerHTML=html;
+
+}
+
+function deleteAccount(i){
+
+accounts.splice(i,1);
+
+saveAll();
+
+renderAccounts();
+
+}
+
+function addFamilyMaster(){
+
+let name=
+document.getElementById("familyMasterName").value;
+
+if(!name)return;
+
+familyMaster.push(name);
+
+saveAll();
+
+renderFamilyMaster();
+
+}
+
+function renderFamilyMaster(){
+
+let html="";
+
+familyMaster.forEach((f,i)=>{
 
 html+=`
+<div class="familyRow">
+${f}
+<button class="red"
+onclick="deleteFamilyMaster(${i})">
+削除
+</button>
+</div>
+`;
+
+});
+
+document.getElementById("familyMasterList").innerHTML=html;
+
+}
+
+function deleteFamilyMaster(i){
+
+familyMaster.splice(i,1);
+
+saveAll();
+
+renderFamilyMaster();
+
+}
+
+function generateFamilies(){
+
+tripFamilies=[];
+
+familyMaster.forEach(name=>{
+
+tripFamilies.push({
+name:name,
+people:1,
+driver:false,
+paid:false
+});
+
+});
+
+renderTripFamilies();
+
+}
+
+function renderTripFamilies(){
+
+let html="";
+
+tripFamilies.forEach((f,i)=>{
+
+html+=`
+
 <div class="card">
-<b>${f.name}</b><br>
-人数:${f.people}人<br>
-負担額:${f.burden}円<br>
+
+<b>${f.name}</b>
+
+<label>
+<input type="checkbox"
+${f.driver?"checked":""}
+onchange="toggleDriver(${i},this.checked)">
+配車家庭
+</label>
+
+<label>参加人数</label>
+
+<input
+type="number"
+value="${f.people}"
+onchange="setPeople(${i},this.value)">
+
 <label>
 <input type="checkbox"
 ${f.paid?"checked":""}
-onchange="togglePaid(${i})">
+onchange="togglePaid(${i},this.checked)">
 入金済
 </label>
+
 </div>
+
 `;
+
 });
 
-html+=`<div class="card"><h3>運転手受取額</h3></div>`;
+document.getElementById("tripFamilies").innerHTML=html;
 
-drivers.forEach(d=>{
-html+=`
+}
+
+function toggleDriver(i,v){
+tripFamilies[i].driver=v;
+}
+
+function setPeople(i,v){
+tripFamilies[i].people=Number(v);
+}
+
+function togglePaid(i,v){
+tripFamilies[i].paid=v;
+}
+
+function calculate(){
+
+let gasPrice=
+Number(document.getElementById("gasPrice").value);
+
+let fuelRate=
+Number(document.getElementById("fuelRate").value);
+
+let distance=
+Number(document.getElementById("distance").value);
+
+let carCount=
+Number(document.getElementById("carCount").value);
+
+let gasCost=
+Math.round(
+(distance/fuelRate)*gasPrice
+);
+
+let totalCost=
+gasCost*carCount;
+
+let chargePeople=0;
+
+tripFamilies.forEach(f=>{
+
+if(f.driver){
+chargePeople+=Math.max(
+0,
+f.people-1
+);
+}else{
+chargePeople+=f.people;
+}
+
+});
+
+if(chargePeople<=0){
+alert("人数不足");
+return;
+}
+
+let unit=
+Math.ceil(
+totalCost/
+chargePeople
+);
+
+let driverCount=
+tripFamilies.filter(f=>f.driver).length;
+
+let dividend=
+driverCount>0
+? Math.round(totalCost/driverCount)
+:0;
+
+let paidCount=
+tripFamilies.filter(f=>f.paid).length;
+
+let rate=
+tripFamilies.length===0
+?0
+:Math.round(
+paidCount/
+tripFamilies.length*100
+);
+
+let html=`
+
 <div class="card">
-<b>${d.name}</b><br>
-乗車人数:${d.passengers}人<br>
-受取額:${d.actualCost}円
+
+<h2>精算結果</h2>
+
+大会：
+${document.getElementById("tripName").value}<br>
+
+総額：
+${totalCost}円<br>
+
+負担人数：
+${chargePeople}人<br>
+
+1人あたり：
+${unit}円<br>
+
+集金率：
+${rate}%
+
+<div class="progress">
+<div class="progressBar"
+style="width:${rate}%">
+${rate}%
+</div>
+</div>
+
+</div>
+
+`;
+
+tripFamilies.forEach(f=>{
+
+let chargePeopleFamily=
+f.driver
+? Math.max(0,f.people-1)
+: f.people;
+
+let burden=
+chargePeopleFamily*unit;
+
+let result=
+f.driver
+? dividend-burden
+: burden*-1;
+
+html+=`
+
+<div class="card">
+
+<b>${f.name}</b><br>
+
+参加人数：
+${f.people}人<br>
+
+配車：
+${f.driver?"あり":"なし"}<br>
+
+負担額：
+${burden}円<br>
+
+`;
+
+if(result>=0){
+
+html+=`
+<span class="resultPlus">
+受取 ${result}円
+</span>
+`;
+
+}else{
+
+html+=`
+<span class="resultMinus">
+支払 ${Math.abs(result)}円
+</span>
+`;
+
+}
+
+html+=`
 </div>
 `;
+
 });
 
 document.getElementById("resultArea").innerHTML=html;
 
-updateCollectionRate();
-saveAll();
-}
-
-function togglePaid(i){
-families[i].paid=!families[i].paid;
-saveAll();
-updateCollectionRate();
-calculateSettlement();
-}
-
-function updateCollectionRate(){
-
-if(families.length===0){
-document.getElementById("collectionBar").style.width="0%";
-document.getElementById("collectionBar").innerText="0%";
-return;
-}
-
-const paid=families.filter(x=>x.paid).length;
-const rate=Math.round((paid/families.length)*100);
-
-document.getElementById("collectionBar").style.width=rate+"%";
-document.getElementById("collectionBar").innerText=rate+"%";
-}
-
-function saveTripHistory(){
-
-const tripName=document.getElementById("tripName").value;
-const tripDate=document.getElementById("tripDate").value;
-
-if(!tripName)return;
-
 histories.unshift({
-tripName,
-tripDate,
-created:new Date().toLocaleString()
+
+date:
+document.getElementById("tripDate").value,
+
+name:
+document.getElementById("tripName").value,
+
+total:totalCost
+
 });
 
 saveAll();
+
 renderHistory();
+
 }
 
 function renderHistory(){
-document.getElementById("historyList").innerHTML=
-histories.map((h,i)=>`
-<div class="card">
-<b>${h.tripName}</b><br>
-${h.tripDate}<br>
-${h.created}<br>
-<button class="red" onclick="deleteHistory(${i})">削除</button>
+
+let html="";
+
+histories.forEach(h=>{
+
+html+=`
+<div class="familyRow">
+${h.date}
+${h.name}
+<span class="badge">
+${h.total}円
+</span>
 </div>
-`).join("");
-}
+`;
 
-function deleteHistory(i){
-histories.splice(i,1);
-saveAll();
-renderHistory();
-}
+});
 
-function backupJSON(){
+document.getElementById("historyList").innerHTML=html;
 
-const data={
-users,
-families,
-drivers,
-histories
-};
-
-const blob=new Blob(
-[JSON.stringify(data,null,2)],
-{type:"application/json"}
-);
-
-const a=document.createElement("a");
-a.href=URL.createObjectURL(blob);
-a.download="dolphins_backup.json";
-a.click();
-}
-
-function restoreJSON(e){
-
-const file=e.target.files[0];
-if(!file)return;
-
-const reader=new FileReader();
-
-reader.onload=function(){
-
-const data=JSON.parse(reader.result);
-
-users=data.users||[];
-families=data.families||[];
-drivers=data.drivers||[];
-histories=data.histories||[];
-
-saveAll();
-
-location.reload();
-};
-
-reader.readAsText(file);
 }
 
 function shareLine(){
 
-const text=document.getElementById("resultArea").innerText;
+let text=
+document.getElementById("resultArea").innerText;
 
 window.open(
 "https://line.me/R/msg/text/?"+
 encodeURIComponent(text)
 );
+
 }
 
-function clearAll(){
+function exportCSV(){
 
-if(!confirm("全データ削除しますか？")) return;
+let rows=[
+["家庭名"]
+];
 
-families=[];
-drivers=[];
-histories=[];
+familyMaster.forEach(f=>{
+rows.push([f]);
+});
+
+let csv=
+rows.map(r=>r.join(","))
+.join("\n");
+
+let blob=
+new Blob(
+[csv],
+{type:"text/csv"}
+);
+
+let a=
+document.createElement("a");
+
+a.href=
+URL.createObjectURL(blob);
+
+a.download=
+"family_master.csv";
+
+a.click();
+
+}
+
+function importCSV(){
+
+let file=
+document.getElementById("csvImport").files[0];
+
+if(!file)return;
+
+let reader=
+new FileReader();
+
+reader.onload=function(){
+
+let lines=
+reader.result.split(/\r?\n/);
+
+familyMaster=[];
+
+lines.slice(1).forEach(line=>{
+
+let cols=line.split(",");
+
+if(cols[0]){
+familyMaster.push(cols[0]);
+}
+
+});
 
 saveAll();
 
-renderFamilies();
-renderDrivers();
-renderHistory();
+renderFamilyMaster();
 
-document.getElementById("resultArea").innerHTML="";
-updateCollectionRate();
+alert("復元完了");
+
+};
+
+reader.readAsText(file);
+
 }
 
-window.onload=init;
+init();
 
 </script>
 
 </body>
-</html>
+  </html>

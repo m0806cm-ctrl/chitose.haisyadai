@@ -6,20 +6,26 @@
 <title>千年ドルフィンズ女子 配車代管理システム</title>
 
 <style>
+
+:root{
+--main:#0b3d91;
+--green:#2e7d32;
+--red:#c62828;
+--bg:#f4f6f8;
+}
+
 *{
 box-sizing:border-box;
-margin:0;
-padding:0;
-font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
 
 body{
-background:#f4f6f8;
-padding-bottom:100px;
+margin:0;
+font-family:Arial,sans-serif;
+background:var(--bg);
 }
 
 header{
-background:#0b3d91;
+background:var(--main);
 color:#fff;
 padding:15px;
 text-align:center;
@@ -31,7 +37,8 @@ z-index:10;
 }
 
 .container{
-padding:12px;
+padding:15px;
+padding-bottom:120px;
 max-width:900px;
 margin:auto;
 }
@@ -39,16 +46,14 @@ margin:auto;
 .card{
 background:#fff;
 padding:15px;
-margin-bottom:12px;
+margin-bottom:15px;
 border-radius:12px;
-box-shadow:0 2px 8px rgba(0,0,0,.08);
+box-shadow:0 2px 5px rgba(0,0,0,.1);
 }
 
-h2,h3{
-margin-bottom:10px;
-}
-
-input,select{
+input,
+select,
+textarea{
 width:100%;
 padding:10px;
 margin-top:5px;
@@ -61,29 +66,24 @@ font-size:16px;
 button{
 border:none;
 border-radius:8px;
-padding:10px 14px;
-cursor:pointer;
+padding:10px 15px;
 margin:3px;
+cursor:pointer;
 font-size:15px;
 }
 
 .primary{
-background:#0b3d91;
+background:var(--main);
 color:#fff;
 }
 
 .green{
-background:#2e7d32;
+background:var(--green);
 color:#fff;
 }
 
 .red{
-background:#c62828;
-color:#fff;
-}
-
-.orange{
-background:#ef6c00;
+background:var(--red);
 color:#fff;
 }
 
@@ -92,61 +92,73 @@ background:#666;
 color:#fff;
 }
 
-.familyRow{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:8px 0;
-border-bottom:1px solid #eee;
-}
-
-.resultPlus{
-color:#2e7d32;
-font-weight:bold;
-}
-
-.resultMinus{
-color:#c62828;
-font-weight:bold;
-}
-
 .hidden{
 display:none;
 }
 
+.title{
+font-size:18px;
+font-weight:bold;
+margin-bottom:10px;
+}
+
+.row{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.col{
+flex:1;
+min-width:200px;
+}
+
+.table{
+width:100%;
+border-collapse:collapse;
+}
+
+.table th,
+.table td{
+border:1px solid #ddd;
+padding:8px;
+font-size:14px;
+}
+
 .badge{
-display:inline-block;
-padding:4px 8px;
-border-radius:6px;
-background:#e8f0ff;
-margin-left:5px;
-font-size:12px;
-}
-
-.progress{
-height:20px;
-background:#ddd;
+padding:5px 10px;
 border-radius:20px;
-overflow:hidden;
-margin-top:5px;
-}
-
-.progressBar{
-height:100%;
-background:#2e7d32;
-text-align:center;
 color:#fff;
 font-size:12px;
 }
 
-@media(max-width:600px){
+.success{
+background:#2e7d32;
+}
+
+.warning{
+background:#ef6c00;
+}
+
+.danger{
+background:#c62828;
+}
+
+@media(max-width:768px){
+
+.row{
+flex-direction:column;
+}
+
 button{
 width:100%;
-margin-top:5px;
 }
+
 }
+
 </style>
 </head>
+
 <body>
 
 <header>
@@ -155,126 +167,299 @@ margin-top:5px;
 
 <div class="container">
 
-<div id="setupCard" class="card hidden">
-<h2>初回管理者設定</h2>
-<input id="adminPass" type="password" placeholder="管理者パスワード">
-<button class="primary" onclick="saveAdmin()">管理者登録</button>
+<!-- ログイン -->
+
+<div id="loginPage" class="card">
+
+<div class="title">
+ログイン
 </div>
 
-<div id="loginCard" class="card hidden">
-<h2>ログイン</h2>
 <select id="loginRole">
-<option value="admin">管理者</option>
-<option value="account">会計</option>
+
+<option value="viewer">
+保護者閲覧
+</option>
+
+<option value="accountant">
+会計
+</option>
+
+<option value="admin">
+管理者
+</option>
+
 </select>
 
-<input id="loginPass" type="password" placeholder="パスワード">
+<input
+id="loginPassword"
+type="password"
+placeholder="パスワード">
 
-<button class="primary" onclick="login()">ログイン</button>
-</div>
-
-<div id="mainArea" class="hidden">
-
-<div class="card">
-<h2>ユーザー情報</h2>
-<div id="roleInfo"></div>
-<button class="red" onclick="logout()">ログアウト</button>
-</div>
-
-<div id="adminArea" class="hidden">
-
-<div class="card">
-<h2>会計アカウント管理</h2>
-
-<input id="accountName" placeholder="会計名">
-
-<input id="accountPass" placeholder="パスワード">
-
-<button class="green" onclick="addAccount()">
-会計追加
+<button
+class="primary"
+onclick="login()">
+ログイン
 </button>
 
-<div id="accountList"></div>
 </div>
 
+<!-- 初回設定 -->
+
+<div
+id="setupPage"
+class="card hidden">
+
+<div class="title">
+初回管理者設定
+</div>
+
+<label>
+管理者パスワード
+</label>
+
+<input
+id="newAdminPass"
+type="password">
+
+<label>
+会計パスワード
+</label>
+
+<input
+id="newAccountPass"
+type="password">
+
+<button
+class="green"
+onclick="saveInitialSetup()">
+設定保存
+</button>
+
+</div>
+
+<!-- メニュー -->
+
+<div
+id="menuArea"
+class="hidden">
+
 <div class="card">
-<h2>家庭マスタ管理</h2>
 
-<input id="familyMasterName" placeholder="家庭名">
+<div id="roleText"></div>
 
-<button class="green" onclick="addFamilyMaster()">
+<button
+class="gray"
+onclick="logout()">
+ログアウト
+</button>
+
+</div>
+
+<!-- 管理者 -->
+
+<div
+id="adminArea"
+class="hidden">
+
+<div class="card">
+
+<div class="title">
+家庭マスタ管理
+</div>
+
+<input
+id="familyMasterName"
+placeholder="家庭名">
+
+<button
+class="green"
+onclick="addFamilyMaster()">
 家庭追加
 </button>
 
 <div id="familyMasterList"></div>
+
 </div>
 
 <div class="card">
-<h2>CSVバックアップ</h2>
 
-<button class="green" onclick="exportCSV()">
-CSV出力
+<div class="title">
+バックアップ
+</div>
+
+<button
+class="primary"
+onclick="exportJSON()">
+JSON保存
 </button>
 
-<input type="file" id="csvImport" accept=".csv">
-
-<button class="orange" onclick="importCSV()">
-CSV復元
+<button
+class="green"
+onclick="exportCSV()">
+CSV保存
 </button>
 
+<input
+type="file"
+id="jsonRestore"
+accept=".json"
+onchange="importJSON(event)">
+
 </div>
+
+</div>
+
+<!-- 会計 -->
+
+<div
+id="accountArea"
+class="hidden">
+
+<div class="card">
+
+<div class="title">
+大会作成
+</div>
+
+<input
+id="tournamentName"
+placeholder="大会名">
+
+<input
+id="tournamentDate"
+type="date">
+
+<label>
+距離(km)
+</label>
+
+<input
+id="distance"
+type="number"
+value="0">
+
+<label>
+ガソリン単価
+</label>
+
+<input
+id="gasPrice"
+type="number"
+value="180">
+
+<label>
+燃費(km/L)
+</label>
+
+<input
+id="fuelRate"
+type="number"
+value="12">
+
+<label>
+配車台数
+</label>
+
+<input
+id="carCount"
+type="number"
+value="1">
+
+<label>
+地図画像
+</label>
+
+<input
+id="routeImage"
+type="file"
+accept="image/*">
 
 </div>
 
 <div class="card">
-<h2>大会入力</h2>
 
-<input id="tripName" placeholder="大会名">
+<div class="title">
+参加家庭登録
+</div>
 
-<input id="tripDate" type="date">
+<div id="familyCheckArea"></div>
 
-<label>ガソリン単価</label>
-<input id="gasPrice" type="number" value="180">
+</div>
+<div class="card">
 
-<label>燃費(km/L)</label>
-<input id="fuelRate" type="number" value="12">
-
-<label>往復距離(km)</label>
-<input id="distance" type="number">
-
-<label>配車台数</label>
-<input id="carCount" type="number" value="1">
-
-<button class="primary" onclick="generateFamilies()">
-参加家庭作成
+<button
+class="primary"
+onclick="calculateTournament()">
+配車代計算
 </button>
 
-</div>
-
-<div class="card">
-<h2>参加家庭設定</h2>
-
-<div id="tripFamilies"></div>
-
-</div>
-
-<div class="card">
-<button class="green" onclick="calculate()">
-精算計算
+<button
+class="green"
+onclick="saveTournament()">
+大会保存
 </button>
-</div>
 
-<div id="resultArea"></div>
-
-<div class="card">
-<h2>遠征履歴</h2>
-<div id="historyList"></div>
-</div>
-
-<div class="card">
-<button class="green" onclick="shareLine()">
+<button
+class="green"
+onclick="shareLine()">
 LINE共有
 </button>
+
+</div>
+
+<div
+id="resultArea">
+</div>
+
+<div class="card">
+
+<div class="title">
+大会履歴
+</div>
+
+<select
+id="historySelect"
+onchange="loadHistory()">
+
+<option value="">
+大会選択
+</option>
+
+</select>
+
+<div id="historyInfo"></div>
+
+</div>
+
+</div>
+
+<!-- 閲覧 -->
+
+<div
+id="viewerArea"
+class="hidden">
+
+<div class="card">
+
+<div class="title">
+保存済み大会
+</div>
+
+<select
+id="viewerTournament"
+onchange="viewerLoad()">
+
+<option value="">
+大会選択
+</option>
+
+</select>
+
+</div>
+
+<div id="viewerResult"></div>
+
 </div>
 
 </div>
@@ -283,49 +468,67 @@ LINE共有
 
 <script>
 
-let role=null;
-
 let familyMaster=
-JSON.parse(localStorage.getItem("familyMaster")||"[]");
+JSON.parse(
+localStorage.getItem(
+"familyMaster"
+)||"[]"
+);
 
-let accounts=
-JSON.parse(localStorage.getItem("accounts")||"[]");
-
-let histories=
-JSON.parse(localStorage.getItem("histories")||"[]");
-
-let tripFamilies=[];
-
-function saveAll(){
-localStorage.setItem("familyMaster",JSON.stringify(familyMaster));
-localStorage.setItem("accounts",JSON.stringify(accounts));
-localStorage.setItem("histories",JSON.stringify(histories));
-}
+let tournaments=
+JSON.parse(
+localStorage.getItem(
+"tournaments"
+)||"[]"
+);
 
 function init(){
 
-if(!localStorage.getItem("adminPassword")){
-document.getElementById("setupCard").classList.remove("hidden");
-}else{
-document.getElementById("loginCard").classList.remove("hidden");
+if(
+!localStorage.getItem(
+"adminPassword"
+)
+){
+document
+.getElementById(
+"loginPage"
+)
+.classList.add(
+"hidden"
+);
+
+document
+.getElementById(
+"setupPage"
+)
+.classList.remove(
+"hidden"
+);
 }
 
-renderFamilyMaster();
-renderAccounts();
-renderHistory();
+refreshHistory();
 
 }
 
-function saveAdmin(){
+function saveInitialSetup(){
 
-let pass=
-document.getElementById("adminPass").value;
+localStorage.setItem(
+"adminPassword",
+document.getElementById(
+"newAdminPass"
+).value
+);
 
-if(!pass)return;
+localStorage.setItem(
+"accountPassword",
+document.getElementById(
+"newAccountPass"
+).value
+);
 
-localStorage.setItem("adminPassword",pass);
-
-alert("管理者作成完了");
+alert(
+"設定完了"
+);
 
 location.reload();
 
@@ -333,114 +536,198 @@ location.reload();
 
 function login(){
 
+let role=
+document.getElementById(
+"loginRole"
+).value;
+
 let pass=
-document.getElementById("loginPass").value;
+document.getElementById(
+"loginPassword"
+).value;
 
-let type=
-document.getElementById("loginRole").value;
+if(role==="viewer"){
 
-if(type==="admin"){
+showViewer();
 
-if(pass!==localStorage.getItem("adminPassword")){
-alert("パスワード違い");
 return;
+
 }
 
-role="admin";
+if(
+role==="admin" &&
+pass===
+localStorage.getItem(
+"adminPassword"
+)
+){
 
-}else{
+showAdmin();
 
-let acc=
-accounts.find(a=>a.pass===pass);
-
-if(!acc){
-alert("パスワード違い");
 return;
-}
-
-role="account";
 
 }
 
-document.getElementById("loginCard").classList.add("hidden");
-document.getElementById("mainArea").classList.remove("hidden");
+if(
+role==="accountant" &&
+pass===
+localStorage.getItem(
+"accountPassword"
+)
+){
 
-if(role==="admin"){
-document.getElementById("adminArea").classList.remove("hidden");
+showAccount();
+
+return;
+
 }
 
-document.getElementById("roleInfo").innerHTML=
-"権限 : "+role;
+alert(
+"ログイン失敗"
+);
 
 }
 
 function logout(){
+
 location.reload();
-}
-
-function addAccount(){
-
-let name=
-document.getElementById("accountName").value;
-
-let pass=
-document.getElementById("accountPass").value;
-
-if(!name||!pass)return;
-
-accounts.push({
-name:name,
-pass:pass
-});
-
-saveAll();
-
-renderAccounts();
 
 }
 
-function renderAccounts(){
+function showAdmin(){
 
-let html="";
+document
+.getElementById(
+"loginPage"
+)
+.classList.add(
+"hidden"
+);
 
-accounts.forEach((a,i)=>{
+document
+.getElementById(
+"menuArea"
+)
+.classList.remove(
+"hidden"
+);
 
-html+=`
-<div class="familyRow">
-${a.name}
-<button class="red"
-onclick="deleteAccount(${i})">
-削除
-</button>
-</div>
-`;
+document
+.getElementById(
+"adminArea"
+)
+.classList.remove(
+"hidden"
+);
 
-});
+document
+.getElementById(
+"roleText"
+)
+.innerHTML=
+"管理者";
 
-document.getElementById("accountList").innerHTML=html;
+renderFamilyMaster();
 
 }
 
-function deleteAccount(i){
+function showAccount(){
 
-accounts.splice(i,1);
+document
+.getElementById(
+"loginPage"
+)
+.classList.add(
+"hidden"
+);
 
-saveAll();
+document
+.getElementById(
+"menuArea"
+)
+.classList.remove(
+"hidden"
+);
 
-renderAccounts();
+document
+.getElementById(
+"accountArea"
+)
+.classList.remove(
+"hidden"
+);
+
+document
+.getElementById(
+"roleText"
+)
+.innerHTML=
+"会計";
+
+renderFamilySelection();
+
+}
+
+function showViewer(){
+
+document
+.getElementById(
+"loginPage"
+)
+.classList.add(
+"hidden"
+);
+
+document
+.getElementById(
+"menuArea"
+)
+.classList.remove(
+"hidden"
+);
+
+document
+.getElementById(
+"viewerArea"
+)
+.classList.remove(
+"hidden"
+);
+
+document
+.getElementById(
+"roleText"
+)
+.innerHTML=
+"保護者閲覧";
+
+refreshViewer();
 
 }
 
 function addFamilyMaster(){
 
 let name=
-document.getElementById("familyMasterName").value;
+document.getElementById(
+"familyMasterName"
+).value.trim();
 
 if(!name)return;
 
-familyMaster.push(name);
+familyMaster.push({
+name:name
+});
 
-saveAll();
+localStorage.setItem(
+"familyMaster",
+JSON.stringify(
+familyMaster
+)
+);
+
+document.getElementById(
+"familyMasterName"
+).value="";
 
 renderFamilyMaster();
 
@@ -450,21 +737,31 @@ function renderFamilyMaster(){
 
 let html="";
 
-familyMaster.forEach((f,i)=>{
+familyMaster.forEach(
+(f,i)=>{
 
 html+=`
-<div class="familyRow">
-${f}
-<button class="red"
+
+<div class="card">
+
+${f.name}
+
+<button
+class="red"
 onclick="deleteFamilyMaster(${i})">
 削除
 </button>
+
 </div>
+
 `;
 
 });
 
-document.getElementById("familyMasterList").innerHTML=html;
+document.getElementById(
+"familyMasterList"
+).innerHTML=
+html;
 
 }
 
@@ -472,36 +769,23 @@ function deleteFamilyMaster(i){
 
 familyMaster.splice(i,1);
 
-saveAll();
+localStorage.setItem(
+"familyMaster",
+JSON.stringify(
+familyMaster
+)
+);
 
 renderFamilyMaster();
 
 }
 
-function generateFamilies(){
-
-tripFamilies=[];
-
-familyMaster.forEach(name=>{
-
-tripFamilies.push({
-name:name,
-people:1,
-driver:false,
-paid:false
-});
-
-});
-
-renderTripFamilies();
-
-}
-
-function renderTripFamilies(){
+function renderFamilySelection(){
 
 let html="";
 
-tripFamilies.forEach((f,i)=>{
+familyMaster.forEach(
+(f,i)=>{
 
 html+=`
 
@@ -510,24 +794,23 @@ html+=`
 <b>${f.name}</b>
 
 <label>
-<input type="checkbox"
-${f.driver?"checked":""}
-onchange="toggleDriver(${i},this.checked)">
-配車家庭
+参加人数
 </label>
-
-<label>参加人数</label>
 
 <input
 type="number"
-value="${f.people}"
-onchange="setPeople(${i},this.value)">
+min="0"
+value="0"
+id="people_${i}">
 
 <label>
-<input type="checkbox"
-${f.paid?"checked":""}
-onchange="togglePaid(${i},this.checked)">
-入金済
+
+<input
+type="checkbox"
+id="driver_${i}">
+
+配車家庭
+
 </label>
 
 </div>
@@ -536,306 +819,301 @@ onchange="togglePaid(${i},this.checked)">
 
 });
 
-document.getElementById("tripFamilies").innerHTML=html;
+document.getElementById(
+"familyCheckArea"
+).innerHTML=
+html;
 
 }
 
-function toggleDriver(i,v){
-tripFamilies[i].driver=v;
-}
-
-function setPeople(i,v){
-tripFamilies[i].people=Number(v);
-}
-
-function togglePaid(i,v){
-tripFamilies[i].paid=v;
-}
-
-function calculate(){
-
-let gasPrice=
-Number(document.getElementById("gasPrice").value);
-
-let fuelRate=
-Number(document.getElementById("fuelRate").value);
+function calculateTournament(){
 
 let distance=
-Number(document.getElementById("distance").value);
+Number(
+document.getElementById(
+"distance"
+).value
+);
+
+let gasPrice=
+Number(
+document.getElementById(
+"gasPrice"
+).value
+);
+
+let fuelRate=
+Number(
+document.getElementById(
+"fuelRate"
+).value
+);
 
 let carCount=
-Number(document.getElementById("carCount").value);
-
-let gasCost=
-Math.round(
-(distance/fuelRate)*gasPrice
+Number(
+document.getElementById(
+"carCount"
+).value
 );
 
 let totalCost=
-gasCost*carCount;
-
-let chargePeople=0;
-
-tripFamilies.forEach(f=>{
-
-if(f.driver){
-chargePeople+=Math.max(
-0,
-f.people-1
+Math.ceil(
+(distance/fuelRate)
+*gasPrice
+*carCount
 );
-}else{
-chargePeople+=f.people;
-}
+
+let totalPeople=0;
+
+let families=[];
+
+familyMaster.forEach(
+(f,i)=>{
+
+let people=
+Number(
+document.getElementById(
+`people_${i}`
+).value
+);
+
+let driver=
+document.getElementById(
+`driver_${i}`
+).checked;
+
+if(people>0){
+
+let chargePeople=
+driver
+? Math.max(
+people-1,
+0
+)
+: people;
+
+totalPeople+=
+chargePeople;
+
+families.push({
+
+name:f.name,
+people:people,
+driver:driver,
+chargePeople:chargePeople
 
 });
 
-if(chargePeople<=0){
-alert("人数不足");
+}
+
+});
+  });
+
+let perPersonCost =
+totalPeople > 0
+? Math.ceil(totalCost / totalPeople)
+: 0;
+
+let resultHtml = `
+<div class="card">
+<div class="title">計算結果</div>
+
+<div>総費用：${totalCost}円</div>
+<div>対象人数：${totalPeople}人</div>
+<div>1人あたり：${perPersonCost}円</div>
+</div>
+
+<div class="card">
+<div class="title">家庭別内訳</div>
+`;
+
+families.forEach(f => {
+resultHtml += `
+<div class="card">
+<b>${f.name}</b><br>
+人数：${f.people}人<br>
+配車：${f.driver ? "あり" : "なし"}<br>
+請求対象：${f.chargePeople}人<br>
+金額：${f.chargePeople * perPersonCost}円
+</div>
+`;
+});
+
+resultHtml += `</div>`;
+
+document.getElementById("resultArea").innerHTML = resultHtml;
+
+// 一時保存
+window.lastCalc = {
+totalCost,
+perPersonCost,
+families
+};
+}
+
+function saveTournament() {
+
+if (!window.lastCalc) {
+alert("先に計算してください");
 return;
 }
 
-let unit=
-Math.ceil(
-totalCost/
-chargePeople
-);
+let tournament = {
+name: document.getElementById("tournamentName").value,
+date: document.getElementById("tournamentDate").value,
+distance: document.getElementById("distance").value,
+gasPrice: document.getElementById("gasPrice").value,
+fuelRate: document.getElementById("fuelRate").value,
+carCount: document.getElementById("carCount").value,
+result: window.lastCalc,
+timestamp: Date.now()
+};
 
-let driverCount=
-tripFamilies.filter(f=>f.driver).length;
+tournaments.push(tournament);
 
-let dividend=
-driverCount>0
-? Math.round(totalCost/driverCount)
-:0;
+localStorage.setItem("tournaments", JSON.stringify(tournaments));
 
-let paidCount=
-tripFamilies.filter(f=>f.paid).length;
+alert("保存しました");
 
-let rate=
-tripFamilies.length===0
-?0
-:Math.round(
-paidCount/
-tripFamilies.length*100
-);
+refreshHistory();
+}
 
-let html=`
+function refreshHistory() {
 
+let sel = document.getElementById("historySelect");
+if (!sel) return;
+
+sel.innerHTML = `<option value="">大会選択</option>`;
+
+tournaments.forEach((t, i) => {
+sel.innerHTML += `
+<option value="${i}">
+${t.name || "無題"}（${t.date || ""}）
+</option>
+`;
+});
+
+let viewerSel = document.getElementById("viewerTournament");
+if (viewerSel) {
+viewerSel.innerHTML = `<option value="">大会選択</option>`;
+
+tournaments.forEach((t, i) => {
+viewerSel.innerHTML += `
+<option value="${i}">
+${t.name || "無題"}（${t.date || ""}）
+</option>
+`;
+});
+}
+}
+
+function loadHistory() {
+
+let i = document.getElementById("historySelect").value;
+if (i === "") return;
+
+let t = tournaments[i];
+
+let html = `
 <div class="card">
-
-<h2>精算結果</h2>
-
-大会：
-${document.getElementById("tripName").value}<br>
-
-総額：
-${totalCost}円<br>
-
-負担人数：
-${chargePeople}人<br>
-
-1人あたり：
-${unit}円<br>
-
-集金率：
-${rate}%
-
-<div class="progress">
-<div class="progressBar"
-style="width:${rate}%">
-${rate}%
+<div class="title">${t.name}</div>
+<div>日付：${t.date}</div>
+<div>距離：${t.distance}km</div>
+<div>結果：${t.result.totalCost}円 / 1人${t.result.perPersonCost}円</div>
 </div>
-</div>
-
-</div>
-
 `;
 
-tripFamilies.forEach(f=>{
+document.getElementById("historyInfo").innerHTML = html;
+}
 
-let chargePeopleFamily=
-f.driver
-? Math.max(0,f.people-1)
-: f.people;
+function viewerLoad() {
 
-let burden=
-chargePeopleFamily*unit;
+let i = document.getElementById("viewerTournament").value;
+if (i === "") return;
 
-let result=
-f.driver
-? dividend-burden
-: burden*-1;
+let t = tournaments[i];
 
-html+=`
-
+let html = `
 <div class="card">
+<div class="title">${t.name}</div>
+<div>日付：${t.date}</div>
+<div>総費用：${t.result.totalCost}円</div>
+<div>1人あたり：${t.result.perPersonCost}円</div>
+</div>
+`;
 
+t.result.families.forEach(f => {
+html += `
+<div class="card">
 <b>${f.name}</b><br>
-
-参加人数：
-${f.people}人<br>
-
-配車：
-${f.driver?"あり":"なし"}<br>
-
-負担額：
-${burden}円<br>
-
-`;
-
-if(result>=0){
-
-html+=`
-<span class="resultPlus">
-受取 ${result}円
-</span>
-`;
-
-}else{
-
-html+=`
-<span class="resultMinus">
-支払 ${Math.abs(result)}円
-</span>
-`;
-
-}
-
-html+=`
+${f.chargePeople}人分：${f.chargePeople * t.result.perPersonCost}円
 </div>
 `;
-
 });
 
-document.getElementById("resultArea").innerHTML=html;
-
-histories.unshift({
-
-date:
-document.getElementById("tripDate").value,
-
-name:
-document.getElementById("tripName").value,
-
-total:totalCost
-
-});
-
-saveAll();
-
-renderHistory();
-
+document.getElementById("viewerResult").innerHTML = html;
 }
 
-function renderHistory(){
+function exportJSON() {
 
-let html="";
+let data = {
+familyMaster,
+tournaments
+};
 
-histories.forEach(h=>{
-
-html+=`
-<div class="familyRow">
-${h.date}
-${h.name}
-<span class="badge">
-${h.total}円
-</span>
-</div>
-`;
-
-});
-
-document.getElementById("historyList").innerHTML=html;
-
-}
-
-function shareLine(){
-
-let text=
-document.getElementById("resultArea").innerText;
-
-window.open(
-"https://line.me/R/msg/text/?"+
-encodeURIComponent(text)
+let blob = new Blob(
+[JSON.stringify(data, null, 2)],
+{ type: "application/json" }
 );
 
-}
-
-function exportCSV(){
-
-let rows=[
-["家庭名"]
-];
-
-familyMaster.forEach(f=>{
-rows.push([f]);
-});
-
-let csv=
-rows.map(r=>r.join(","))
-.join("\n");
-
-let blob=
-new Blob(
-[csv],
-{type:"text/csv"}
-);
-
-let a=
-document.createElement("a");
-
-a.href=
-URL.createObjectURL(blob);
-
-a.download=
-"family_master.csv";
-
+let a = document.createElement("a");
+a.href = URL.createObjectURL(blob);
+a.download = "backup.json";
 a.click();
-
 }
 
-function importCSV(){
+function importJSON(event) {
 
-let file=
-document.getElementById("csvImport").files[0];
+let file = event.target.files[0];
+let reader = new FileReader();
 
-if(!file)return;
+reader.onload = function (e) {
+let data = JSON.parse(e.target.result);
 
-let reader=
-new FileReader();
+familyMaster = data.familyMaster || [];
+tournaments = data.tournaments || [];
 
-reader.onload=function(){
+localStorage.setItem("familyMaster", JSON.stringify(familyMaster));
+localStorage.setItem("tournaments", JSON.stringify(tournaments));
 
-let lines=
-reader.result.split(/\r?\n/);
-
-familyMaster=[];
-
-lines.slice(1).forEach(line=>{
-
-let cols=line.split(",");
-
-if(cols[0]){
-familyMaster.push(cols[0]);
-}
-
-});
-
-saveAll();
-
-renderFamilyMaster();
-
-alert("復元完了");
-
+alert("復元しました");
+location.reload();
 };
 
 reader.readAsText(file);
+}
 
+function shareLine() {
+
+if (!window.lastCalc) {
+alert("先に計算してください");
+return;
+}
+
+let text =
+`配車代結果\n` +
+`総費用：${window.lastCalc.totalCost}円\n` +
+`1人あたり：${window.lastCalc.perPersonCost}円`;
+
+let url =
+`https://social-plugins.line.me/lineit/share?text=` +
+encodeURIComponent(text);
+
+window.open(url, "_blank");
 }
 
 init();
-
 </script>
 
 </body>
-  </html>
+</html>

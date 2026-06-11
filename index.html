@@ -294,12 +294,6 @@ onclick="exportJSON()">
 JSON保存
 </button>
 
-<button
-class="green"
-onclick="exportCSV()">
-CSV保存
-</button>
-
 <input
 type="file"
 id="jsonRestore"
@@ -484,31 +478,19 @@ localStorage.getItem(
 
 function init(){
 
-if(
-!localStorage.getItem(
-"adminPassword"
-)
-){
-document
-.getElementById(
-"loginPage"
-)
-.classList.add(
-"hidden"
-);
-
-document
-.getElementById(
-"setupPage"
-)
-.classList.remove(
-"hidden"
-);
+if(!localStorage.getItem("adminPassword")){
+document.getElementById("loginPage").classList.add("hidden");
+document.getElementById("setupPage").classList.remove("hidden");
 }
 
+// DOM確実化（重要）
+setTimeout(() => {
 refreshHistory();
+}, 0);
 
 }
+
+
 
 function saveInitialSetup(){
 
@@ -670,41 +652,33 @@ renderFamilySelection();
 
 function showViewer(){
 
-document
-.getElementById(
-"loginPage"
-)
-.classList.add(
-"hidden"
-);
+document.getElementById("loginPage").classList.add("hidden");
 
-document
-.getElementById(
-"menuArea"
-)
-.classList.remove(
-"hidden"
-);
+document.getElementById("menuArea").classList.remove("hidden");
 
-document
-.getElementById(
-"viewerArea"
-)
-.classList.remove(
-"hidden"
-);
+document.getElementById("viewerArea").classList.remove("hidden");
 
-document
-.getElementById(
-"roleText"
-)
-.innerHTML=
-"保護者閲覧";
+document.getElementById("roleText").innerHTML = "保護者閲覧";
 
 refreshViewer();
 
 }
 
+function refreshViewer() {
+
+let sel = document.getElementById("viewerTournament");
+if (!sel) return;
+
+sel.innerHTML = `<option value="">大会選択</option>`;
+
+tournaments.forEach((t, i) => {
+sel.innerHTML += `
+<option value="${i}">
+${t.name || "無題"}（${t.date || ""}）
+</option>
+`;
+});
+}
 function addFamilyMaster(){
 
 let name=
@@ -866,48 +840,32 @@ Math.ceil(
 let totalPeople=0;
 
 let families=[];
+familyMaster.forEach((f,i)=>{
 
-familyMaster.forEach(
-(f,i)=>{
+let people = safeNum(document.getElementById(`people_${i}`).value);
 
-let people=
-Number(
-document.getElementById(
-`people_${i}`
-).value
-);
+let driver =
+document.getElementById(`driver_${i}`).checked;
 
-let driver=
-document.getElementById(
-`driver_${i}`
-).checked;
+if(people > 0){
 
-if(people>0){
-
-let chargePeople=
+let chargePeople =
 driver
-? Math.max(
-people-1,
-0
-)
+? Math.max(people - 1, 0)
 : people;
 
-totalPeople+=
-chargePeople;
+totalPeople += chargePeople;
 
 families.push({
-
-name:f.name,
-people:people,
-driver:driver,
-chargePeople:chargePeople
-
+name: f.name,
+people: people,
+driver: driver,
+chargePeople: chargePeople
 });
 
 }
 
-});
-  });
+}); // ← ここでforEach終了（これだけでOK）
 
 let perPersonCost =
 totalPeople > 0
@@ -977,7 +935,9 @@ alert("保存しました");
 
 refreshHistory();
 }
-
+function safeNum(v){
+return isNaN(Number(v)) ? 0 : Number(v);
+}
 function refreshHistory() {
 
 let sel = document.getElementById("historySelect");
@@ -1029,7 +989,12 @@ document.getElementById("historyInfo").innerHTML = html;
 function viewerLoad() {
 
 let i = document.getElementById("viewerTournament").value;
-if (i === "") return;
+
+if (i === "") {
+document.getElementById("viewerResult").innerHTML =
+"<div class='card'>大会を選択してください</div>";
+return;
+}
 
 let t = tournaments[i];
 
@@ -1053,7 +1018,6 @@ ${f.chargePeople}人分：${f.chargePeople * t.result.perPersonCost}円
 
 document.getElementById("viewerResult").innerHTML = html;
 }
-
 function exportJSON() {
 
 let data = {
@@ -1100,10 +1064,24 @@ alert("先に計算してください");
 return;
 }
 
+let t = window.lastCalc;
+
 let text =
-`配車代結果\n` +
-`総費用：${window.lastCalc.totalCost}円\n` +
-`1人あたり：${window.lastCalc.perPersonCost}円`;
+`【配車代のご案内】\n\n` +
+`■総費用：${t.totalCost}円\n` +
+`■1人あたり：${t.perPersonCost}円\n\n` +
+`--- 内訳 ---\n`;
+
+t.families.forEach(f => {
+text +=
+`${f.name}\n` +
+`・人数：${f.people}人\n` +
+`・配車：${f.driver ? "あり" : "なし"}\n` +
+`・請求：${f.chargePeople * t.perPersonCost}円\n\n`;
+});
+
+text +=
+`※配車協力家庭は1名分免除で計算しています`;
 
 let url =
 `https://social-plugins.line.me/lineit/share?text=` +

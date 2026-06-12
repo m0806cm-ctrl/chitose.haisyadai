@@ -299,7 +299,15 @@ type="file"
 id="jsonRestore"
 accept=".json"
 onchange="importJSON(event)">
-
+  
+<div id="backupInfo"
+style="
+margin-top:10px;
+font-weight:bold;
+color:#0b3d91;
+">
+バックアップ未実施
+</div>
 </div> <!-- バックアップカード終了 -->
 
 <div class="card">
@@ -712,6 +720,7 @@ document
 
 renderFamilyMaster();
 
+showBackupInfo();
 }
 
 function showAccount(){
@@ -1312,9 +1321,33 @@ let blob = new Blob(
 );
 
 let a = document.createElement("a");
-a.href = URL.createObjectURL(blob);
-a.download = "backup.json";
+
+a.href =
+URL.createObjectURL(blob);
+
+let today =
+new Date()
+.toISOString()
+.slice(0,10);
+
+a.download =
+`backup_${today}.json`;
+
 a.click();
+
+/* バックアップ日保存 */
+
+localStorage.setItem(
+"lastBackupDate",
+new Date().toISOString()
+);
+
+showBackupInfo();
+
+alert(
+"バックアップを保存しました"
+);
+
 }
 function deleteTournament() {
 
@@ -1355,6 +1388,55 @@ document.getElementById(
 refreshHistory();
 
 alert("削除しました");
+
+}
+  function showBackupInfo(){
+
+let d =
+localStorage.getItem(
+"lastBackupDate"
+);
+
+let el =
+document.getElementById(
+"backupInfo"
+);
+
+if(!el) return;
+
+if(!d){
+
+el.innerHTML =
+"バックアップ未実施";
+
+return;
+
+}
+
+let displayDate =
+new Date(d).toLocaleDateString("ja-JP");
+
+el.innerHTML =
+"最終バックアップ日：" +
+displayDate;
+
+/* 30日警告 */
+
+let last =
+new Date(d);
+
+let diff =
+Math.floor(
+(Date.now() - last.getTime())
+/ 86400000
+);
+
+if(diff > 30){
+
+el.innerHTML +=
+"<br><span style='color:red'>⚠ 30日以上バックアップなし</span>";
+
+}
 
 }
 function importJSON(event) {

@@ -1272,6 +1272,17 @@ let html = `
 <div>日付：${t.date}</div>
 <div>総費用：${t.result.totalCost}円</div>
 <div>1人あたり：${t.result.perPersonCost}円</div>
+
+${t.routeImage ?
+`<img
+src="${t.routeImage}"
+style="
+width:100%;
+margin-top:10px;
+border-radius:10px;
+">`
+: ""}
+
 </div>
 `;
 
@@ -1459,7 +1470,6 @@ location.reload();
 
 reader.readAsText(file);
 }
-
 function shareLine() {
 
 if (!window.lastCalc) {
@@ -1470,34 +1480,31 @@ return;
 let t = window.lastCalc;
 
 let tournamentName =
-document.getElementById(
-"tournamentName"
-).value || "大会";
+document.getElementById("tournamentName").value || "大会";
+
+let tournamentDate =
+document.getElementById("tournamentDate").value || "";
+
+let carCount =
+document.getElementById("carCount").value || 0;
 
 let text =
-`【${tournamentName} 配車代のご案内】\n\n` +
-`■総費用：${t.totalCost}円\n` +
-`■1人あたり：${t.perPersonCost}円\n\n` +
-`--- 内訳 ---\n`;
 
-t.families.forEach(f => {
-text +=
-`${f.name}\n` +
-`・人数：${f.people}人\n` +
-`・配車：${f.driver ? "あり" : "なし"}\n` +
-`・請求額：${f.charge}円\n` +
-`・受取額：${f.receive}円\n` +
-`・差額：${f.balance}円\n\n`;
-});
+`【${tournamentName}】\n\n` +
 
-text +=
-`※配車協力家庭は1名分免除で計算しています`;
+`日付：${tournamentDate}\n` +
+`総費用：${t.totalCost}円\n` +
+`配車台数：${carCount}台\n\n` +
+
+`詳細はこちら\n` +
+`https://m0806cm-ctrl.github.io/chitose-haisyadai/`;
 
 let url =
 "https://line.me/R/msg/text/?" +
 encodeURIComponent(text);
 
 window.open(url, "_blank");
+
 }
 
 init();

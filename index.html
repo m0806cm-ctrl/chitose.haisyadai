@@ -300,6 +300,35 @@ id="jsonRestore"
 accept=".json"
 onchange="importJSON(event)">
 
+</div> <!-- バックアップカード終了 -->
+
+<div class="card">
+
+<div class="title">
+パスワード変更
+</div>
+
+<label>
+新しい管理者パスワード
+</label>
+
+<input
+id="changeAdminPass"
+type="password">
+
+<label>
+新しい会計パスワード
+</label>
+
+<input
+id="changeAccountPass"
+type="password">
+
+<button
+class="green"
+onclick="changePasswords()">
+パスワード更新
+</button>
 </div>
 
 </div>
@@ -423,6 +452,12 @@ onchange="loadHistory()">
 </select>
 
 <div id="historyInfo"></div>
+
+<button
+class="red"
+onclick="deleteTournament()">
+この大会を削除
+</button>
 
 </div>
 
@@ -573,6 +608,72 @@ alert(
 function logout(){
 
 location.reload();
+
+}
+function changePasswords(){
+
+let currentPass =
+prompt(
+"現在の管理者パスワードを入力してください"
+);
+
+if(
+currentPass !==
+localStorage.getItem(
+"adminPassword"
+)
+){
+alert("認証失敗");
+return;
+}
+
+let adminPass =
+document.getElementById(
+"changeAdminPass"
+).value.trim();
+
+let accountPass =
+document.getElementById(
+"changeAccountPass"
+).value.trim();
+
+if(
+!adminPass &&
+!accountPass
+){
+alert("入力してください");
+return;
+}
+
+if(adminPass){
+
+localStorage.setItem(
+"adminPassword",
+adminPass
+);
+
+}
+
+if(accountPass){
+
+localStorage.setItem(
+"accountPassword",
+accountPass
+);
+
+}
+
+alert(
+"パスワードを更新しました"
+);
+
+document.getElementById(
+"changeAdminPass"
+).value = "";
+
+document.getElementById(
+"changeAccountPass"
+).value = "";
 
 }
 
@@ -856,11 +957,13 @@ driver
 
 totalPeople += chargePeople;
 
+
+
 families.push({
-name: f.name,
-people: people,
-driver: driver,
-chargePeople: chargePeople
+name:f.name,
+people:people,
+driver:driver,
+chargePeople:chargePeople
 });
 
 }
@@ -871,6 +974,21 @@ let perPersonCost =
 totalPeople > 0
 ? Math.ceil(totalCost / totalPeople)
 : 0;
+
+families.forEach(f => {
+
+f.charge =
+f.chargePeople * perPersonCost;
+
+f.receive =
+f.driver
+? Math.round(totalCost / carCount)
+: 0;
+
+f.balance =
+f.receive - f.charge;
+
+});
 
 let resultHtml = `
 <div class="card">
@@ -886,18 +1004,30 @@ let resultHtml = `
 `;
 
 families.forEach(f => {
+
+let charge =
+f.chargePeople * perPersonCost;
+
+let receive =
+f.driver
+? Math.round(totalCost / carCount)
+: 0;
+
+let diff =
+receive - charge;
+
 resultHtml += `
 <div class="card">
 <b>${f.name}</b><br>
 人数：${f.people}人<br>
 配車：${f.driver ? "あり" : "なし"}<br>
 請求対象：${f.chargePeople}人<br>
-金額：${f.chargePeople * perPersonCost}円
+請求額：${charge}円<br>
+受取額：${Math.round(receive)}円<br>
+差額：${Math.round(diff)}円
 </div>
 `;
 });
-
-resultHtml += `</div>`;
 
 document.getElementById("resultArea").innerHTML = resultHtml;
 
@@ -916,24 +1046,100 @@ alert("先に計算してください");
 return;
 }
 
-let tournament = {
-name: document.getElementById("tournamentName").value,
-date: document.getElementById("tournamentDate").value,
-distance: document.getElementById("distance").value,
-gasPrice: document.getElementById("gasPrice").value,
-fuelRate: document.getElementById("fuelRate").value,
-carCount: document.getElementById("carCount").value,
-result: window.lastCalc,
-timestamp: Date.now()
+let imageFile =
+document.getElementById(
+"routeImage"
+).files[0];
+
+if(imageFile){
+
+let reader =
+new FileReader();
+
+reader.onload = function(e){
+
+saveTournamentData(
+e.target.result
+);
+
 };
 
-tournaments.push(tournament);
+reader.readAsDataURL(
+imageFile
+);
 
-localStorage.setItem("tournaments", JSON.stringify(tournaments));
+}else{
 
-alert("保存しました");
+saveTournamentData("");
+
+}
+
+}
+
+function saveTournamentData(
+imageData
+){
+
+let tournament = {
+
+name:
+document.getElementById(
+"tournamentName"
+).value,
+
+date:
+document.getElementById(
+"tournamentDate"
+).value,
+
+distance:
+document.getElementById(
+"distance"
+).value,
+
+gasPrice:
+document.getElementById(
+"gasPrice"
+).value,
+
+fuelRate:
+document.getElementById(
+"fuelRate"
+).value,
+
+carCount:
+document.getElementById(
+"carCount"
+).value,
+
+routeImage:
+imageData,
+
+result:
+window.lastCalc,
+
+timestamp:
+Date.now()
+
+};
+
+tournaments.push(
+tournament
+);
+
+localStorage.setItem(
+"tournaments",
+JSON.stringify(
+tournaments
+)
+);
+
+alert(
+"保存しました"
+);
 
 refreshHistory();
+
 }
 function safeNum(v){
 return isNaN(Number(v)) ? 0 : Number(v);
@@ -970,7 +1176,11 @@ ${t.name || "無題"}（${t.date || ""}）
 function loadHistory() {
 
 let i = document.getElementById("historySelect").value;
-if (i === "") return;
+
+if (i === "") {
+document.getElementById("historyInfo").innerHTML = "";
+return;
+}
 
 let t = tournaments[i];
 
@@ -979,9 +1189,58 @@ let html = `
 <div class="title">${t.name}</div>
 <div>日付：${t.date}</div>
 <div>距離：${t.distance}km</div>
-<div>結果：${t.result.totalCost}円 / 1人${t.result.perPersonCost}円</div>
+<div>総費用：${t.result.totalCost}円</div>
+<div>1人あたり：${t.result.perPersonCost}円</div>
+
+${t.routeImage ?
+`<img
+src="${t.routeImage}"
+style="
+width:100%;
+margin-top:10px;
+border-radius:10px;
+">`
+: ""}
+
 </div>
 `;
+
+t.result.families.forEach(f => {
+
+let charge =
+(f.charge !== undefined)
+? f.charge
+: f.chargePeople * t.result.perPersonCost;
+
+let receive =
+(f.receive !== undefined)
+? f.receive
+: (f.driver
+? Math.round(t.result.totalCost / Number(t.carCount || 1))
+: 0);
+
+let balance =
+(f.balance !== undefined)
+? f.balance
+: receive - charge;
+
+html += `
+<div class="card">
+<b>${f.name}</b><br>
+人数：${f.people}人<br>
+配車：${f.driver ? "あり" : "なし"}<br>
+請求額：${charge}円<br>
+受取額：${receive}円<br>
+差額：
+<span style="
+font-weight:bold;
+color:${balance >= 0 ? '#2e7d32' : '#c62828'};
+">
+${balance > 0 ? '+' : ''}${balance}円
+</span>
+</div>
+`;
+});
 
 document.getElementById("historyInfo").innerHTML = html;
 }
@@ -1008,10 +1267,32 @@ let html = `
 `;
 
 t.result.families.forEach(f => {
+
+let charge =
+(f.charge !== undefined)
+? f.charge
+: f.chargePeople * t.result.perPersonCost;
+
+let receive =
+(f.receive !== undefined)
+? f.receive
+: (f.driver
+? Math.round(t.result.totalCost / Number(t.carCount || 1))
+: 0);
+
+let balance =
+(f.balance !== undefined)
+? f.balance
+: receive - charge;
+
 html += `
 <div class="card">
 <b>${f.name}</b><br>
-${f.chargePeople}人分：${f.chargePeople * t.result.perPersonCost}円
+人数：${f.people}人<br>
+配車：${f.driver ? "あり" : "なし"}<br>
+請求額：${charge}円<br>
+受取額：${receive}円<br>
+差額：${balance > 0 ? "+" : ""}${balance}円
 </div>
 `;
 });
@@ -1035,7 +1316,47 @@ a.href = URL.createObjectURL(blob);
 a.download = "backup.json";
 a.click();
 }
+function deleteTournament() {
 
+let i =
+document.getElementById(
+"historySelect"
+).value;
+
+if(i===""){
+alert("大会を選択してください");
+return;
+}
+
+if(
+!confirm(
+"この大会を削除しますか？"
+)
+){
+return;
+}
+
+tournaments.splice(
+Number(i),
+1
+);
+
+localStorage.setItem(
+"tournaments",
+JSON.stringify(
+tournaments
+)
+);
+
+document.getElementById(
+"historyInfo"
+).innerHTML = "";
+
+refreshHistory();
+
+alert("削除しました");
+
+}
 function importJSON(event) {
 
 let file = event.target.files[0];
@@ -1066,8 +1387,13 @@ return;
 
 let t = window.lastCalc;
 
+let tournamentName =
+document.getElementById(
+"tournamentName"
+).value || "大会";
+
 let text =
-`【配車代のご案内】\n\n` +
+`【${tournamentName} 配車代のご案内】\n\n` +
 `■総費用：${t.totalCost}円\n` +
 `■1人あたり：${t.perPersonCost}円\n\n` +
 `--- 内訳 ---\n`;
@@ -1077,14 +1403,16 @@ text +=
 `${f.name}\n` +
 `・人数：${f.people}人\n` +
 `・配車：${f.driver ? "あり" : "なし"}\n` +
-`・請求：${f.chargePeople * t.perPersonCost}円\n\n`;
+`・請求額：${f.charge}円\n` +
+`・受取額：${f.receive}円\n` +
+`・差額：${f.balance}円\n\n`;
 });
 
 text +=
 `※配車協力家庭は1名分免除で計算しています`;
 
 let url =
-`https://social-plugins.line.me/lineit/share?text=` +
+"https://line.me/R/msg/text/?" +
 encodeURIComponent(text);
 
 window.open(url, "_blank");

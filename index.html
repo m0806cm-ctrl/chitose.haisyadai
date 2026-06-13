@@ -502,8 +502,29 @@ onchange="viewerLoad()">
 </div>
 
 </div>
-<script>
 
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc
+}
+from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD9ylzkyeZ603V1fm89MGhSAM8tyF3LgAU",
+  authDomain: "chitose-haisya.firebaseapp.com",
+  projectId: "chitose-haisya",
+  storageBucket: "chitose-haisya.firebasestorage.app",
+ 
 
 let tournaments=
 JSON.parse(
@@ -1125,22 +1146,31 @@ Date.now()
 
 };
 
-tournaments.push(
+try{
+
+await fb.addDoc(
+fb.collection(
+db,
+"tournaments"
+),
 tournament
 );
 
-localStorage.setItem(
-"tournaments",
-JSON.stringify(
-tournaments
-)
+alert(
+"Firestoreに保存しました"
 );
+
+}catch(e){
+
+console.error(e);
 
 alert(
-"保存しました"
+"保存失敗\n\n" + e.message
 );
 
-refreshHistory();
+}
+
+}
 function safeNum(v){
 return isNaN(Number(v)) ? 0 : Number(v);
 }

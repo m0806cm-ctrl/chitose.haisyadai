@@ -1088,7 +1088,7 @@ saveTournamentData("");
 
 }
 
-function saveTournamentData(
+async function saveTournamentData(
 imageData
 ){
 
@@ -1135,22 +1135,29 @@ Date.now()
 
 };
 
-tournaments.push(
+try{
+
+await fb.addDoc(
+fb.collection(
+db,
+"tournaments"
+),
 tournament
 );
 
-localStorage.setItem(
-"tournaments",
-JSON.stringify(
-tournaments
-)
+alert(
+"Firestoreに保存しました"
 );
+
+}catch(e){
+
+console.error(e);
 
 alert(
-"保存しました"
+"保存失敗"
 );
 
-refreshHistory();
+}
 
 }
 function safeNum(v){

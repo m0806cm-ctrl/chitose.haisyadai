@@ -1125,31 +1125,22 @@ Date.now()
 
 };
 
-try{
-
-await fb.addDoc(
-fb.collection(
-db,
-"tournaments"
-),
+tournaments.push(
 tournament
 );
 
-alert(
-"Firestoreに保存しました"
+localStorage.setItem(
+"tournaments",
+JSON.stringify(
+tournaments
+)
 );
 
-}catch(e){
-
-console.error(e);
-
 alert(
-"保存失敗\n\n" + e.message
+"保存しました"
 );
 
-}
-
-}
+refreshHistory();
 function safeNum(v){
 return isNaN(Number(v)) ? 0 : Number(v);
 }

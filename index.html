@@ -505,14 +505,26 @@ onchange="viewerLoad()">
 
 
 <script type="module">
-</script>
-  <script>
-let familyMaster=
-JSON.parse(
-localStorage.getItem(
-"familyMaster"
-)||"[]"
-);
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc
+}
+from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD9ylzkyeZ603V1fm89MGhSAM8tyF3LgAU",
+  authDomain: "chitose-haisya.firebaseapp.com",
+  projectId: "chitose-haisya",
+  storageBucket: "chitose-haisya.firebasestorage.app",
+ 
 
 let tournaments=
 JSON.parse(

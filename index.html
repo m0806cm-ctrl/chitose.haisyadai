@@ -531,11 +531,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
    
- function init() {
+async function init() {
 
-  const hasAdmin =
-    localStorage.getItem("adminPassword");
+const settingsDoc =
+await getDoc(
+doc(db,"settings","passwords")
+);
 
+const hasAdmin =
+settingsDoc.exists();
   listenFamilyMaster();
   listenTournaments();
 
@@ -589,69 +593,67 @@ function listenTournaments() {
 
  
  
-function saveInitialSetup() {
-  localStorage.setItem(
-    "adminPassword",
-    document.getElementById("newAdminPass").value
-  );
+async function saveInitialSetup() {
 
-  localStorage.setItem(
-    "accountPassword",
-    document.getElementById("newAccountPass").value
+  await setDoc(
+    doc(db,"settings","passwords"),
+    {
+      adminPassword:
+        document.getElementById("newAdminPass").value,
+
+      accountPassword:
+        document.getElementById("newAccountPass").value
+    }
   );
 
   alert("設定完了");
+
   location.reload();
 }
 
 
-function login(){
+async function login(){
 
-let role=
+const settingsDoc =
+await getDoc(
+doc(db,"settings","passwords")
+);
+
+const settings =
+settingsDoc.data();
+
+let role =
 document.getElementById(
 "loginRole"
 ).value;
 
-let pass=
+let pass =
 document.getElementById(
 "loginPassword"
 ).value;
 
 if(role==="viewer"){
-
 showViewer();
-
 return;
-
 }
 
 if(
 role==="admin" &&
-pass===
-localStorage.getItem(
-"adminPassword"
-)
+pass===settings.adminPassword
 ){
-
 showAdmin();
-
 return;
-
 }
 
 if(
 role==="accountant" &&
-pass===
-localStorage.getItem(
-"accountPassword"
-)
+pass===settings.accountPassword
 ){
-
 showAccount();
-
 return;
-
 }
+
+alert("ログ
 
 alert(
 "ログイン失敗"
@@ -701,9 +703,12 @@ return;
 
 if(adminPass){
 
-localStorage.setItem(
-"adminPassword",
-adminPass
+await setDoc(
+doc(db,"settings","passwords"),
+{
+adminPassword: adminPass,
+accountPassword: accountPass
+}
 );
 
 }

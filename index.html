@@ -503,27 +503,67 @@ onchange="viewerLoad()">
 
 </div>
 
-<script>
+<script type="module">
+// ===== Firebase追加（STEP1）=====
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  deleteDoc,
+  doc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-let familyMaster=
-JSON.parse(
-localStorage.getItem(
-"familyMaster"
-)||"[]"
-);
+// ===== Firebase設定（ここは後であなたの値に変更）=====
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_BUCKET",
+  messagingSenderId: "XXX",
+  appId: "XXX"
+};
 
-let tournaments=
-JSON.parse(
-localStorage.getItem(
-"tournaments"
-)||"[]"
-);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+function listenFamilyMaster() {
+  onSnapshot(collection(db, "familyMaster"), (snap) => {
+    familyMaster = snap.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+
+    renderFamilyMaster();
+    renderFamilySelection();
+  });
+}
+
+function listenTournaments() {
+  onSnapshot(collection(db, "tournaments"), (snap) => {
+    tournaments = snap.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+
+    refreshHistory();
+  });
+}
 
 function init(){
+
+listenFamilyMaster();
+listenTournaments();
 
 if(!localStorage.getItem("adminPassword")){
 document.getElementById("loginPage").classList.add("hidden");
 document.getElementById("setupPage").classList.remove("hidden");
+}
+
+setTimeout(() => {
+refreshHistory();
+}, 0);
+
 }
 
 // DOM確実化（重要）

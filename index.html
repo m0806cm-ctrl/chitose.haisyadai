@@ -504,7 +504,10 @@ onchange="viewerLoad()">
 </div>
 
 <script type="module">
-// ===== Firebase追加（STEP1）=====
+let familyMaster = [];
+let tournaments = [];
+  
+  // ===== Firebase追加（STEP1）=====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import {
   getFirestore,
@@ -512,21 +515,53 @@ import {
   addDoc,
   deleteDoc,
   doc,
-  onSnapshot
+  onSnapshot,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-
-// ===== Firebase設定（ここは後であなたの値に変更）=====
+  
 const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_BUCKET",
-  messagingSenderId: "XXX",
-  appId: "XXX"
+  apiKey:"...",
+  authDomain:"...",
+  projectId:"...",
+  storageBucket:"...",
+  messagingSenderId:"...",
+  appId:"..."
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+   
+ function init() {
+
+  const hasAdmin =
+    localStorage.getItem("adminPassword");
+
+  listenFamilyMaster();
+  listenTournaments();
+
+  const loginPage =
+    document.getElementById("loginPage");
+
+  const setupPage =
+    document.getElementById("setupPage");
+
+  if (!hasAdmin) {
+    loginPage.classList.add("hidden");
+    setupPage.classList.remove("hidden");
+  } else {
+    loginPage.classList.remove("hidden");
+    setupPage.classList.add("hidden");
+  }
+
+  setTimeout(() => {
+    refreshHistory();
+    renderFamilyMaster();
+    renderFamilySelection();
+    showBackupInfo();
+    refreshViewer();
+  }, 0);
+
+}
 function listenFamilyMaster() {
   onSnapshot(collection(db, "familyMaster"), (snap) => {
     familyMaster = snap.docs.map(d => ({
@@ -538,66 +573,37 @@ function listenFamilyMaster() {
     renderFamilySelection();
   });
 }
-
 function listenTournaments() {
   onSnapshot(collection(db, "tournaments"), (snap) => {
+
     tournaments = snap.docs.map(d => ({
       id: d.id,
       ...d.data()
     }));
 
     refreshHistory();
+    refreshViewer();
+
   });
 }
 
-function init(){
+ 
+ 
+function saveInitialSetup() {
+  localStorage.setItem(
+    "adminPassword",
+    document.getElementById("newAdminPass").value
+  );
 
-listenFamilyMaster();
-listenTournaments();
+  localStorage.setItem(
+    "accountPassword",
+    document.getElementById("newAccountPass").value
+  );
 
-if(!localStorage.getItem("adminPassword")){
-document.getElementById("loginPage").classList.add("hidden");
-document.getElementById("setupPage").classList.remove("hidden");
+  alert("設定完了");
+  location.reload();
 }
 
-setTimeout(() => {
-refreshHistory();
-}, 0);
-
-}
-
-// DOM確実化（重要）
-setTimeout(() => {
-refreshHistory();
-}, 0);
-
-}
-
-
-
-function saveInitialSetup(){
-
-localStorage.setItem(
-"adminPassword",
-document.getElementById(
-"newAdminPass"
-).value
-);
-
-localStorage.setItem(
-"accountPassword",
-document.getElementById(
-"newAccountPass"
-).value
-);
-
-alert(
-"設定完了"
-);
-
-location.reload();
-
-}
 
 function login(){
 
@@ -829,32 +835,16 @@ ${t.name || "無題"}（${t.date || ""}）
 `;
 });
 }
-function addFamilyMaster(){
+async function addFamilyMaster() {
+  let name = document.getElementById("familyMasterName").value.trim();
+  if (!name) return;
 
-let name=
-document.getElementById(
-"familyMasterName"
-).value.trim();
+  await addDoc(collection(db, "familyMaster"), {
+    name,
+    createdAt: Date.now()
+  });
 
-if(!name)return;
-
-familyMaster.push({
-name:name
-});
-
-localStorage.setItem(
-"familyMaster",
-JSON.stringify(
-familyMaster
-)
-);
-
-document.getElementById(
-"familyMasterName"
-).value="";
-
-renderFamilyMaster();
-
+  document.getElementById("familyMasterName").value = "";
 }
 
 function renderFamilyMaster(){
@@ -872,7 +862,7 @@ ${f.name}
 
 <button
 class="red"
-onclick="deleteFamilyMaster(${i})">
+onclick="deleteFamilyMaster('${f.id}')">
 削除
 </button>
 
@@ -889,19 +879,8 @@ html;
 
 }
 
-function deleteFamilyMaster(i){
-
-familyMaster.splice(i,1);
-
-localStorage.setItem(
-"familyMaster",
-JSON.stringify(
-familyMaster
-)
-);
-
-renderFamilyMaster();
-
+async function deleteFamilyMaster(id) {
+  await deleteDoc(doc(db, "familyMaster", id));
 }
 
 function renderFamilySelection(){
@@ -1154,70 +1133,24 @@ saveTournamentData("");
 
 }
 
-function saveTournamentData(
-imageData
-){
+async function saveTournamentData(imageData) {
 
-let tournament = {
+  let tournament = {
+    name: document.getElementById("tournamentName").value,
+    date: document.getElementById("tournamentDate").value,
+    distance: document.getElementById("distance").value,
+    gasPrice: document.getElementById("gasPrice").value,
+    fuelRate: document.getElementById("fuelRate").value,
+    carCount: document.getElementById("carCount").value,
+    routeImage: imageData,
+    result: window.lastCalc,
+    timestamp: Date.now()
+  };
 
-name:
-document.getElementById(
-"tournamentName"
-).value,
+  await addDoc(collection(db, "tournaments"), tournament);
 
-date:
-document.getElementById(
-"tournamentDate"
-).value,
-
-distance:
-document.getElementById(
-"distance"
-).value,
-
-gasPrice:
-document.getElementById(
-"gasPrice"
-).value,
-
-fuelRate:
-document.getElementById(
-"fuelRate"
-).value,
-
-carCount:
-document.getElementById(
-"carCount"
-).value,
-
-routeImage:
-imageData,
-
-result:
-window.lastCalc,
-
-timestamp:
-Date.now()
-
-};
-
-tournaments.push(
-tournament
-);
-
-localStorage.setItem(
-"tournaments",
-JSON.stringify(
-tournaments
-)
-);
-
-alert(
-"保存しました"
-);
-
-refreshHistory();
-
+  alert("保存しました");
+  refreshHistory();
 }
 function safeNum(v){
 return isNaN(Number(v)) ? 0 : Number(v);
@@ -1388,19 +1321,37 @@ html += `
 
 document.getElementById("viewerResult").innerHTML = html;
 }
-function exportJSON() {
+async function exportJSON() {
 
-let data = {
-familyMaster,
-tournaments
+const familySnap =
+await getDocs(collection(db,"familyMaster"));
+
+const tournamentSnap =
+await getDocs(collection(db,"tournaments"));
+
+const data = {
+
+familyMaster:
+familySnap.docs.map(d=>({
+id:d.id,
+...d.data()
+})),
+
+tournaments:
+tournamentSnap.docs.map(d=>({
+id:d.id,
+...d.data()
+}))
+
 };
 
 let blob = new Blob(
-[JSON.stringify(data, null, 2)],
-{ type: "application/json" }
+[JSON.stringify(data,null,2)],
+{type:"application/json"}
 );
 
-let a = document.createElement("a");
+let a =
+document.createElement("a");
 
 a.href =
 URL.createObjectURL(blob);
@@ -1415,8 +1366,6 @@ a.download =
 
 a.click();
 
-/* バックアップ日保存 */
-
 localStorage.setItem(
 "lastBackupDate",
 new Date().toISOString()
@@ -1424,52 +1373,36 @@ new Date().toISOString()
 
 showBackupInfo();
 
-alert(
-"バックアップを保存しました"
-);
-
+alert("バックアップを保存しました");
 }
-function deleteTournament() {
+async function deleteTournament() {
 
-let i =
-document.getElementById(
-"historySelect"
-).value;
+  let i =
+    document.getElementById(
+      "historySelect"
+    ).value;
 
-if(i===""){
-alert("大会を選択してください");
-return;
+  if (i === "")
+    return alert("大会を選択してください");
+
+  let t = tournaments[i];
+
+  if (!confirm("この大会を削除しますか？"))
+    return;
+
+  await deleteDoc(
+    doc(db, "tournaments", t.id)
+  );
+
+  document.getElementById(
+    "historyInfo"
+  ).innerHTML = "";
+
+  refreshHistory();
+
+  alert("削除しました");
 }
 
-if(
-!confirm(
-"この大会を削除しますか？"
-)
-){
-return;
-}
-
-tournaments.splice(
-Number(i),
-1
-);
-
-localStorage.setItem(
-"tournaments",
-JSON.stringify(
-tournaments
-)
-);
-
-document.getElementById(
-"historyInfo"
-).innerHTML = "";
-
-refreshHistory();
-
-alert("削除しました");
-
-}
   function showBackupInfo(){
 
 let d =
@@ -1519,25 +1452,60 @@ el.innerHTML +=
 }
 
 }
-function importJSON(event) {
+async function importJSON(event) {
 
 let file = event.target.files[0];
-let reader = new FileReader();
 
-reader.onload = function (e) {
-let data = JSON.parse(e.target.result);
+if(!file) return;
 
-familyMaster = data.familyMaster || [];
-tournaments = data.tournaments || [];
+let text =
+await file.text();
 
-localStorage.setItem("familyMaster", JSON.stringify(familyMaster));
-localStorage.setItem("tournaments", JSON.stringify(tournaments));
+let data =
+JSON.parse(text);
 
-alert("復元しました");
-location.reload();
-};
+if(
+!confirm(
+"現在のFirestoreデータへ追加復元しますか？"
+)
+){
+return;
+}
 
-reader.readAsText(file);
+for(const f of (data.familyMaster || [])){
+
+await addDoc(
+collection(db,"familyMaster"),
+{
+name:f.name,
+createdAt:
+f.createdAt || Date.now()
+}
+);
+
+}
+
+for(const t of (data.tournaments || [])){
+
+await addDoc(
+collection(db,"tournaments"),
+{
+name:t.name,
+date:t.date,
+distance:t.distance,
+gasPrice:t.gasPrice,
+fuelRate:t.fuelRate,
+carCount:t.carCount,
+routeImage:t.routeImage || "",
+result:t.result,
+timestamp:
+t.timestamp || Date.now()
+}
+);
+
+}
+
+alert("Firestoreへ復元しました");
 }
 function shareLine() {
 

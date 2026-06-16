@@ -516,8 +516,11 @@ import {
   deleteDoc,
   doc,
   onSnapshot,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+  getDocs,
+  getDoc,
+  setDoc
+}
+from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
   
 const firebaseConfig = {
   apiKey:"...",
@@ -595,16 +598,24 @@ function listenTournaments() {
  
 async function saveInitialSetup() {
 
-  await setDoc(
-    doc(db,"settings","passwords"),
-    {
-      adminPassword:
-        document.getElementById("newAdminPass").value,
+let adminPass =
+document.getElementById("newAdminPass").value.trim();
 
-      accountPassword:
-        document.getElementById("newAccountPass").value
-    }
-  );
+let accountPass =
+document.getElementById("newAccountPass").value.trim();
+
+if(!adminPass || !accountPass){
+alert("パスワードを入力してください");
+return;
+}
+
+await setDoc(
+doc(db,"settings","passwords"),
+{
+adminPassword:adminPass,
+accountPassword:accountPass
+}
+);
 
   alert("設定完了");
 
@@ -664,18 +675,24 @@ function logout(){
 location.reload();
 
 }
-function changePasswords(){
+async function changePasswords(){
 
 let currentPass =
 prompt(
 "現在の管理者パスワードを入力してください"
 );
 
+const settingsDoc =
+await getDoc(
+doc(db,"settings","passwords")
+);
+
+const settings =
+settingsDoc.data();
+
 if(
 currentPass !==
-localStorage.getItem(
-"adminPassword"
-)
+settings.adminPassword
 ){
 alert("認証失敗");
 return;
@@ -699,26 +716,18 @@ alert("入力してください");
 return;
 }
 
-if(adminPass){
-
 await setDoc(
 doc(db,"settings","passwords"),
 {
-adminPassword: adminPass,
-accountPassword: accountPass
+adminPassword:
+adminPass ||
+settings.adminPassword,
+
+accountPassword:
+accountPass ||
+settings.accountPassword
 }
 );
-
-}
-
-if(accountPass){
-
-localStorage.setItem(
-"accountPassword",
-accountPass
-);
-
-}
 
 alert(
 "パスワードを更新しました"
@@ -731,7 +740,6 @@ document.getElementById(
 document.getElementById(
 "changeAccountPass"
 ).value = "";
-
 }
 
 function showAdmin(){
@@ -883,9 +891,16 @@ html;
 }
 
 async function deleteFamilyMaster(id) {
-  await deleteDoc(doc(db, "familyMaster", id));
+
+if(!confirm("この家庭を削除しますか？")){
+return;
 }
 
+await deleteDoc(
+doc(db,"familyMaster",id)
+);
+
+}
 function renderFamilySelection(){
 
 let html="";
@@ -1030,10 +1045,13 @@ chargePeople:chargePeople
 
 }); // ← ここでforEach終了（これだけでOK）
 
+if(totalPeople===0){
+alert("参加家庭を入力してください");
+return;
+}
+
 let perPersonCost =
-totalPeople > 0
-? Math.ceil(totalCost / totalPeople)
-: 0;
+Math.ceil(totalCost / totalPeople);
 
 families.forEach(f => {
 
@@ -1461,19 +1479,48 @@ let file = event.target.files[0];
 
 if(!file) return;
 
-let text =
-await file.text();
-
-let data =
-JSON.parse(text);
+let text = await file.text();
+let data = JSON.parse(text);
 
 if(
 !confirm(
-"現在のFirestoreデータへ追加復元しますか？"
+"⚠ 現在の全データを削除します。\n復元後は元に戻せません。\n続行しますか？"
 )
 ){
 return;
 }
+
+/* ===== familyMaster全削除 ===== */
+
+const familySnap =
+await getDocs(
+collection(db,"familyMaster")
+);
+
+for(const d of familySnap.docs){
+
+await deleteDoc(
+doc(db,"familyMaster",d.id)
+);
+
+}
+
+/* ===== tournaments全削除 ===== */
+
+const tournamentSnap =
+await getDocs(
+collection(db,"tournaments")
+);
+
+for(const d of tournamentSnap.docs){
+
+await deleteDoc(
+doc(db,"tournaments",d.id)
+);
+
+}
+
+/* ===== familyMaster復元 ===== */
 
 for(const f of (data.familyMaster || [])){
 
@@ -1487,6 +1534,8 @@ f.createdAt || Date.now()
 );
 
 }
+
+/* ===== tournaments復元 ===== */
 
 for(const t of (data.tournaments || [])){
 
@@ -1508,7 +1557,8 @@ t.timestamp || Date.now()
 
 }
 
-alert("Firestoreへ復元しました");
+alert("バックアップから完全復元しました");
+
 }
 function shareLine() {
 

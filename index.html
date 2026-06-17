@@ -625,10 +625,17 @@ accountPassword:accountPass
 
 async function login(){
 
+try {
+
 const settingsDoc =
 await getDoc(
 doc(db,"settings","passwords")
 );
+
+if(!settingsDoc.exists()){
+alert("settings/passwords が見つかりません");
+return;
+}
 
 const settings =
 settingsDoc.data();
@@ -664,12 +671,20 @@ showAccount();
 return;
 }
 
+alert("ログイン失敗");
+
+} catch(e){
+
+console.error(e);
+
 alert(
-"ログイン失敗"
+"Firestore接続エラー\n\n" +
+e.message
 );
 
 }
 
+}
 function logout(){
 
 location.reload();

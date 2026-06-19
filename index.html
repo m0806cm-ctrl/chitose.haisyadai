@@ -533,7 +533,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-window.db = db;   
+
+console.log("app =", app);
+console.log("db =", db);
+
+window.db = db;
+
 async function init() {
 
 const settingsDoc =

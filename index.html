@@ -533,11 +533,15 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-window.app = app;initializeApp(firebaseConfig);
+window.app = app;
 
 const db = getFirestore(app);
 window.db = db;
 
+window.getDoc = getDoc;
+window.doc = doc;
+window.getDocs = getDocs;
+window.collection = collection;
 async function init() {
 
   console.log("TEST START");

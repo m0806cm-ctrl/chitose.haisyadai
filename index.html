@@ -511,7 +511,6 @@ let tournaments = [];
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import {
   getFirestore,
-  initializeFirestore,
   collection,
   addDoc,
   deleteDoc,
@@ -534,13 +533,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
-  useFetchStreams: false
-});
-console.log("DB ID", db._databaseId);
-console.log("app =", app);
-console.log("db =", db);
+const db = getFirestore(app);
 
 window.db = db;
 

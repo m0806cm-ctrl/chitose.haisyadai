@@ -546,23 +546,26 @@ window.db = db;
 
 async function init() {
 
-console.log("init start");
-console.log("navigator.onLine =", navigator.onLine);
+  console.log("init start");
 
-try {
+  try {
 
-const test =
-await getDoc(
-doc(db,"settings","passwords")
-);
+    const ref = doc(db,"settings","passwords");
 
-console.log("TEST OK");
-console.log(test.exists());
-console.log(test.data());
+    console.log("doc ref =", ref);
 
-} catch(e){
+    const settingsDoc = await getDoc(ref);
 
-console.error("TEST ERROR", e);
+    console.log("getDoc success");
+
+    console.log(settingsDoc.exists());
+
+  } catch(e){
+
+    console.error("INIT ERROR", e);
+    alert(e.message);
+
+  }
 
 }
 

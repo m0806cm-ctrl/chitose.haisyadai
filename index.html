@@ -633,6 +633,8 @@ async function login(){
 
 try {
 
+console.log("before getDoc");
+
 const settingsDoc =
 await getDoc(
   doc(db,"settings","passwords")
@@ -649,7 +651,6 @@ if(!settingsDoc.exists()){
 
 const settings =
 settingsDoc.data();
-
 let role =
 document.getElementById(
 "loginRole"

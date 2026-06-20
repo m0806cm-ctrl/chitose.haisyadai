@@ -548,7 +548,7 @@ async function init() {
 
 console.log("TEST START");
 
-try{
+try {
 
 const test =
 await getDoc(
@@ -558,11 +558,9 @@ doc(db,"settings","passwords")
 console.log("SUCCESS");
 console.log(test.exists());
 
-}catch(e){
+} catch(e) {
 
-console.error("TEST ERROR",e);
-
-}
+console.error("TEST ERROR", e);
 
 }
 
@@ -577,39 +575,34 @@ settingsDoc.exists();
 listenFamilyMaster();
 listenTournaments();
 
-  const loginPage =
-    document.getElementById("loginPage");
+const loginPage =
+document.getElementById("loginPage");
 
-  const setupPage =
-    document.getElementById("setupPage");
+const setupPage =
+document.getElementById("setupPage");
 
-  if (!hasAdmin) {
-    loginPage.classList.add("hidden");
-    setupPage.classList.remove("hidden");
-  } else {
-    loginPage.classList.remove("hidden");
-    setupPage.classList.add("hidden");
-  }
+if (!hasAdmin) {
 
-  setTimeout(() => {
-    refreshHistory();
-    renderFamilyMaster();
-    renderFamilySelection();
-    showBackupInfo();
-    refreshViewer();
-  }, 0);
+loginPage.classList.add("hidden");
+setupPage.classList.remove("hidden");
+
+} else {
+
+loginPage.classList.remove("hidden");
+setupPage.classList.add("hidden");
 
 }
-function listenFamilyMaster() {
-  onSnapshot(collection(db, "familyMaster"), (snap) => {
-    familyMaster = snap.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
 
-    renderFamilyMaster();
-    renderFamilySelection();
-  });
+setTimeout(() => {
+
+refreshHistory();
+renderFamilyMaster();
+renderFamilySelection();
+showBackupInfo();
+refreshViewer();
+
+}, 0);
+
 }
 function listenTournaments() {
   onSnapshot(collection(db, "tournaments"), (snap) => {

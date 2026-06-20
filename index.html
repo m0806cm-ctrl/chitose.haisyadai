@@ -535,7 +535,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true
+  experimentalForceLongPolling: true,
+  useFetchStreams: false
 });
 console.log("DB ID", db._databaseId);
 console.log("app =", app);
@@ -545,6 +546,26 @@ window.db = db;
 
 async function init() {
 
+console.log("init start");
+console.log("navigator.onLine =", navigator.onLine);
+
+try {
+
+const test =
+await getDoc(
+doc(db,"settings","passwords")
+);
+
+console.log("TEST OK");
+console.log(test.exists());
+console.log(test.data());
+
+} catch(e){
+
+console.error("TEST ERROR", e);
+
+}
+
 const settingsDoc =
 await getDoc(
 doc(db,"settings","passwords")
@@ -552,8 +573,9 @@ doc(db,"settings","passwords")
 
 const hasAdmin =
 settingsDoc.exists();
-  listenFamilyMaster();
-  listenTournaments();
+
+listenFamilyMaster();
+listenTournaments();
 
   const loginPage =
     document.getElementById("loginPage");

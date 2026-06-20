@@ -635,12 +635,16 @@ try {
 
 const settingsDoc =
 await getDoc(
-doc(db,"settings","passwords")
+  doc(db,"settings","passwords")
 );
 
+console.log("after getDoc");
+console.log(settingsDoc.exists());
+console.log(settingsDoc.data());
+
 if(!settingsDoc.exists()){
-alert("settings/passwords が見つかりません");
-return;
+  alert("settings/passwords が見つかりません");
+  return;
 }
 
 const settings =

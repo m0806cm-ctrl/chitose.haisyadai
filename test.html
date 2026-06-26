@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Firestore Test</title>
+</head>
+<body>
+
+<h2>Firestore 接続テスト</h2>
+
+<pre id="result">読み込み中...</pre>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD9ylzkyeZ603V1fm89MGhSAM8tyF3LgAU",
+  authDomain: "chitose-haisya.firebaseapp.com",
+  projectId: "chitose-haisya",
+  storageBucket: "chitose-haisya.firebasestorage.app",
+  messagingSenderId: "1027495083030",
+  appId: "1:1027495083030:web:98dc2ebf25a3fd7e2f8937"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+  const result = document.getElementById("result");
+
+try {
+
+  const snap = await getDoc(
+    doc(db, "settings", "passwords")
+  );
+
+  if (snap.exists()) {
+
+    result.textContent =
+      "SUCCESS\n\n" +
+      JSON.stringify(snap.data(), null, 2);
+
+  } else {
+
+    result.textContent =
+      "ドキュメントが存在しません";
+
+  }
+
+} catch (e) {
+
+  result.textContent =
+    "ERROR\n\n" +
+    e.code + "\n" +
+    e.message;
+
+  console.error(e);
+
+}
+</script>
+
+</body>
+</html>

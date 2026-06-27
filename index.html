@@ -628,8 +628,8 @@ return;
 await setDoc(
 doc(db,"settings","passwords"),
 {
-adminPassword:adminPass,
-accountPassword:accountPass
+admin: adminPass,
+accounts: accountPass
 }
 );
 
@@ -732,7 +732,7 @@ settingsDoc.data();
 
 if(
 currentPass !==
-settings.adminPassword
+settings.admin
 ){
 alert("認証失敗");
 return;
@@ -761,11 +761,10 @@ doc(db,"settings","passwords"),
 {
 adminPassword:
 adminPass ||
-settings.adminPassword,
-
+settings.admin
 accountPassword:
 accountPass ||
-settings.accountPassword
+settings.accounts
 }
 );
 

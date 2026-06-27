@@ -743,18 +743,19 @@ async function changePasswords(){
     return;
   }
 
-  await setDoc(
-    doc(db,"settings","passwords"),
-    {
-      admin: adminPass || settings.admin,
-      accounts: accountPass || settings.accounts
-    }
-  );
+await setDoc(
+  doc(db, "settings", "passwords"),
+  {
+    admin: adminPass || settings.admin,
+    accounts: accountPass || settings.accounts
+  }
+);
 
-  alert("パスワードを更新しました");
+alert("パスワードを更新しました");
 
-  document.getElementById("changeAdminPass").value = "";
-  document.getElementById("changeAccountPass").value = "";
+document.getElementById("changeAdminPass").value = "";
+document.getElementById("changeAccountPass").value = "";
+
 }
 function showAdmin(){
 

@@ -694,9 +694,8 @@ pass===settings.accounts
 
 console.log("role:", role);
 console.log("入力pass:", pass);
-console.log("設定account:", settings.accountPassword);
-console.log("一致:", pass === settings.accountPassword);
-
+console.log("設定account:", settings.accounts);
+console.log("一致:", pass === settings.accounts);
 alert("ログイン失敗");
 } catch(e){
 
@@ -717,70 +716,46 @@ location.reload();
 }
 async function changePasswords(){
 
-let currentPass =
-prompt(
-"現在の管理者パスワードを入力してください"
-);
+  let currentPass =
+  prompt("現在の管理者パスワードを入力してください");
 
-const settingsDoc =
-await getDoc(
-doc(db,"settings","passwords")
-);
+  const settingsDoc =
+  await getDoc(
+    doc(db,"settings","passwords")
+  );
 
-const settings =
-settingsDoc.data();
+  const settings =
+  settingsDoc.data();
 
-if(
-currentPass !==
-settings.admin
-){
-alert("認証失敗");
-return;
+  if(currentPass !== settings.admin){
+    alert("認証失敗");
+    return;
+  }
+
+  let adminPass =
+  document.getElementById("changeAdminPass").value.trim();
+
+  let accountPass =
+  document.getElementById("changeAccountPass").value.trim();
+
+  if(!adminPass && !accountPass){
+    alert("入力してください");
+    return;
+  }
+
+  await setDoc(
+    doc(db,"settings","passwords"),
+    {
+      admin: adminPass || settings.admin,
+      accounts: accountPass || settings.accounts
+    }
+  );
+
+  alert("パスワードを更新しました");
+
+  document.getElementById("changeAdminPass").value = "";
+  document.getElementById("changeAccountPass").value = "";
 }
-
-let adminPass =
-document.getElementById(
-"changeAdminPass"
-).value.trim();
-
-let accountPass =
-document.getElementById(
-"changeAccountPass"
-).value.trim();
-
-if(
-!adminPass &&
-!accountPass
-){
-alert("入力してください");
-return;
-}
-
-await setDoc(
-doc(db,"settings","passwords"),
-{
-adminPassword:
-adminPass ||
-settings.admin
-accountPassword:
-accountPass ||
-settings.accounts
-}
-);
-
-alert(
-"パスワードを更新しました"
-);
-
-document.getElementById(
-"changeAdminPass"
-).value = "";
-
-document.getElementById(
-"changeAccountPass"
-).value = "";
-}
-
 function showAdmin(){
 
 document

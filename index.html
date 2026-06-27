@@ -571,7 +571,23 @@ console.log(firebaseConfig.projectId);
   const hasAdmin =
   settingsDoc.exists();
 
-// listenFamilyMaster();
+listenFamilyMaster();
+listenTournaments();
+function listenFamilyMaster() {
+
+  onSnapshot(collection(db, "familyMaster"), (snap) => {
+
+    familyMaster = snap.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+
+    renderFamilyMaster();
+    renderFamilySelection();
+
+  });
+
+}  
 listenTournaments();
   const loginPage =
     document.getElementById("loginPage");
@@ -609,7 +625,21 @@ function listenTournaments() {
 
   });
 }
+function listenFamilyMaster() {
 
+  onSnapshot(collection(db, "familyMaster"), (snap) => {
+
+    familyMaster = snap.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+
+    renderFamilyMaster();
+    renderFamilySelection();
+
+  });
+
+}
  
  
 async function saveInitialSetup() {

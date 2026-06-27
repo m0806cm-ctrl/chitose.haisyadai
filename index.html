@@ -571,23 +571,8 @@ console.log(firebaseConfig.projectId);
   const hasAdmin =
   settingsDoc.exists();
 
+
 listenFamilyMaster();
-listenTournaments();
-function listenFamilyMaster() {
-
-  onSnapshot(collection(db, "familyMaster"), (snap) => {
-
-    familyMaster = snap.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
-
-    renderFamilyMaster();
-    renderFamilySelection();
-
-  });
-
-}  
 listenTournaments();
   const loginPage =
     document.getElementById("loginPage");
@@ -610,6 +595,36 @@ listenTournaments();
     showBackupInfo();
     refreshViewer();
   }, 0);
+}
+function listenFamilyMaster() {
+
+  onSnapshot(collection(db, "familyMaster"), (snap) => {
+
+    familyMaster = snap.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+
+    renderFamilyMaster();
+    renderFamilySelection();
+
+  });
+
+}
+
+function listenTournaments() {
+
+  onSnapshot(collection(db, "tournaments"), (snap) => {
+
+    tournaments = snap.docs.map(d => ({
+      id:d.id,
+      ...d.data()
+    }));
+
+    refreshHistory();
+    refreshViewer();
+
+  });
 
 }
 function listenTournaments() {
@@ -892,15 +907,26 @@ ${t.name || "無題"}（${t.date || ""}）
 });
 }
 async function addFamilyMaster() {
-  let name = document.getElementById("familyMasterName").value.trim();
+
+  let name =
+    document.getElementById("familyMasterName").value.trim();
+
+  console.log("追加:", name);
+
   if (!name) return;
 
-  await addDoc(collection(db, "familyMaster"), {
-    name,
-    createdAt: Date.now()
-  });
+  await addDoc(
+    collection(db, "familyMaster"),
+    {
+      name,
+      createdAt: Date.now()
+    }
+  );
+
+  console.log("保存完了");
 
   document.getElementById("familyMasterName").value = "";
+
 }
 
 function renderFamilyMaster(){

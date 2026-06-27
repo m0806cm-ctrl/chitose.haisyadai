@@ -611,22 +611,6 @@ function listenFamilyMaster() {
   });
 
 }
-
-function listenTournaments() {
-
-  onSnapshot(collection(db, "tournaments"), (snap) => {
-
-    tournaments = snap.docs.map(d => ({
-      id:d.id,
-      ...d.data()
-    }));
-
-    refreshHistory();
-    refreshViewer();
-
-  });
-
-}
 function listenTournaments() {
   onSnapshot(collection(db, "tournaments"), (snap) => {
 
@@ -640,23 +624,6 @@ function listenTournaments() {
 
   });
 }
-function listenFamilyMaster() {
-
-  onSnapshot(collection(db, "familyMaster"), (snap) => {
-
-    familyMaster = snap.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
-
-    renderFamilyMaster();
-    renderFamilySelection();
-
-  });
-
-}
- 
- 
 async function saveInitialSetup() {
 
 let adminPass =

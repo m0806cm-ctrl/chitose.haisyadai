@@ -518,7 +518,9 @@ import {
   onSnapshot,
   getDocs,
   getDoc,
-  setDoc
+   setDoc,
+  query,
+  orderBy
 }
 from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
   
@@ -545,84 +547,89 @@ window.collection = collection;
 async function init() {
 
   console.log("TEST START");
-console.log(firebaseConfig.projectId);
-  try{
+  console.log(firebaseConfig.projectId);
 
-    const test =
-    await getDoc(
-      doc(db,"settings","passwords")
-    );
+  try {
 
-    console.log("SUCCESS");
-    console.log(test.exists());
+    const settingsDoc =
+      await getDoc(doc(db, "settings", "passwords"));
 
-  }catch(e){
+    const hasAdmin = settingsDoc.exists();
 
-    console.error("TEST ERROR",e);
+    listenFamilyMaster();
+    listenTournaments();
 
-    return;
-  }
+    const loginPage =
+      document.getElementById("loginPage");
 
-  const settingsDoc =
-  await getDoc(
-    doc(db,"settings","passwords")
-  );
+    const setupPage =
+      document.getElementById("setupPage");
 
-  const hasAdmin =
-  settingsDoc.exists();
+    if (hasAdmin) {
+      loginPage.classList.remove("hidden");
+      setupPage.classList.add("hidden");
+    } else {
+      loginPage.classList.add("hidden");
+      setupPage.classList.remove("hidden");
+    }
 
-
-listenFamilyMaster();
-listenTournaments();
-  const loginPage =
-    document.getElementById("loginPage");
-
-  const setupPage =
-    document.getElementById("setupPage");
-
-  if (!hasAdmin) {
-    loginPage.classList.add("hidden");
-    setupPage.classList.remove("hidden");
-  } else {
-    loginPage.classList.remove("hidden");
-    setupPage.classList.add("hidden");
-  }
-
-  setTimeout(() => {
-    refreshHistory();
-    renderFamilyMaster();
-    renderFamilySelection();
     showBackupInfo();
-    refreshViewer();
-  }, 0);
-}
+
+  } catch (e) {
+
+    console.error("INIT ERROR", e);
+    alert("Firestore接続エラー\n" + e.message);
+
+  }
+
+}    
 function listenFamilyMaster() {
 
-  onSnapshot(collection(db, "familyMaster"), (snap) => {
+  onSnapshot(
+    collection(db, "familyMaster"),
+    (snap) => {
 
-    familyMaster = snap.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
+      familyMaster =
+        snap.docs
+          .map(d => ({
+            id: d.id,
+            ...d.data()
+          }))
+          .sort((a, b) =>
+            (a.createdAt || 0) -
+            (b.createdAt || 0)
+          );
 
-    renderFamilyMaster();
-    renderFamilySelection();
+      renderFamilyMaster();
+      renderFamilySelection();
 
-  });
+    }
+  );
 
 }
 function listenTournaments() {
-  onSnapshot(collection(db, "tournaments"), (snap) => {
 
-    tournaments = snap.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
+  onSnapshot(
+    collection(db, "tournaments"),
+    (snap) => {
 
-    refreshHistory();
-    refreshViewer();
+      tournaments =
+        snap.docs
+          .map(d => ({
+            id: d.id,
+            ...d.data()
+          }))
+          .sort((a, b) =>
+            (b.timestamp || 0) -
+            (a.timestamp || 0)
+          );
 
-  });
+      refreshHistory();
+      refreshViewer();
+
+    }
+  );
+
 }
 async function saveInitialSetup() {
 
@@ -640,8 +647,8 @@ return;
 await setDoc(
 doc(db,"settings","passwords"),
 {
-admin: adminPass,
-accounts: accountPass
+  admin: adminPass,
+  accountant: accountPass
 }
 );
 
@@ -698,7 +705,7 @@ return;
 
 if(
 role==="accountant" &&
-pass===settings.accounts
+pass===settings.accountant
 ){
   showAccount();
   return;
@@ -706,8 +713,8 @@ pass===settings.accounts
 
 console.log("role:", role);
 console.log("入力pass:", pass);
-console.log("設定account:", settings.accounts);
-console.log("一致:", pass === settings.accounts);
+console.log("設定accountant:", settings.accountant);
+console.log("一致:", pass === settings.accountant);
 alert("ログイン失敗");
 } catch(e){
 
@@ -759,10 +766,9 @@ await setDoc(
   doc(db, "settings", "passwords"),
   {
     admin: adminPass || settings.admin,
-    accounts: accountPass || settings.accounts
+    accountant: accountPass || settings.accountant
   }
 );
-
 alert("パスワードを更新しました");
 
 document.getElementById("changeAdminPass").value = "";

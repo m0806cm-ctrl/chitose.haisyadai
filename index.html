@@ -688,12 +688,16 @@ if(
 role==="accountant" &&
 pass===settings.accountPassword
 ){
-showAccount();
-return;
+  showAccount();
+  return;
 }
 
-alert("ログイン失敗");
+console.log("role:", role);
+console.log("入力pass:", pass);
+console.log("設定account:", settings.accountPassword);
+console.log("一致:", pass === settings.accountPassword);
 
+alert("ログイン失敗");
 } catch(e){
 
 console.error(e);
